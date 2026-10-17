@@ -163,12 +163,13 @@ ul.list li { border-color: var(--p-line); }
 .bottom-bar,
 nav#tabbar .inner {
   position: fixed;
-  left: 0;
-  right: 0;
+  /* 화면 전체 너비(스크롤바 포함)의 가운데에 고정해요.
+     페이지에 세로 스크롤바가 생기고 사라져도 이동바가 좌우로 움직이지 않아요. */
+  left: 50vw;
+  transform: translateX(-50%);
   bottom: calc(14px + env(safe-area-inset-bottom));
-  width: calc(100% - 32px);
-  max-width: 480px;
-  margin: 0 auto;
+  width: min(480px, calc(100vw - 32px));
+  margin: 0;
   z-index: 10;
   display: flex;
   gap: 2px;
