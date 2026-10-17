@@ -210,18 +210,6 @@ function renderGroup() {
     </div>`).join("");
 }
 
-function renderMy() {
-  const f = $("goal-form"), g = data.goal;
-  for (const k of ["name", "target", "saved", "deadline", "income"]) f.elements[k].value = g[k];
-}
-$("goal-form").onsubmit = (e) => {
-  e.preventDefault();
-  const f = e.target.elements;
-  data.goal = { name: f.name.value, target: +f.target.value, saved: +f.saved.value, deadline: f.deadline.value, income: +f.income.value };
-  persist(); renderHome();
-  $("goal-saved-msg").hidden = false; setTimeout(() => $("goal-saved-msg").hidden = true, 2000);
-};
-
 function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
 /* ---------- 탭 네비게이션 ---------- */
@@ -230,7 +218,6 @@ function goTab(tab) {
   document.querySelectorAll("#tabbar button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
   if (tab === "home") renderHome();
   if (tab === "group") renderGroup();
-  if (tab === "my") renderMy();
   if (tab === "chat" && !$("chatlog").children.length) aiSay("구매를 고민 중인 물건과 가격을 알려주세요. 감정이 아니라 수치로 판단하겠습니다.");
   window.scrollTo(0, 0);
 }
@@ -304,7 +291,9 @@ $("chatform").onsubmit = (e) => {
 /* ---------- 시작 ---------- */
 let data = load("data", null);
 if (!data) { data = defaultData(); persist(); }
-goTab("home");
+// 주소 해시(#group, #chat)로 시작 탭 지정 (다른 페이지의 하단바에서 이동용)
+const startTab = location.hash.slice(1);
+goTab(["home", "group", "chat"].includes(startTab) ? startTab : "home");
 </script>
 </body>
 </html>
