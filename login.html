@@ -6,33 +6,35 @@
 <title>돈모으기운동 - 로그인</title>
 <style>
   :root {
-    --green: #4caf7d; --green-dark: #3d9468; --pastel: #6fb98f; --pastel-text: #5a9e78;
-    --pastel-light: #cfe9da; --pastel-bg: #f1f9f4; --white: #fff; --gray: #8a9a91; --red: #e57373;
+    --bg: #f3f5f9; --card: #fff; --text: #1c2230; --muted: #6b7487; --line: #e3e7ef;
+    --primary: #3b6cff; --good: #1a9b5f; --bad: #d9443b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #12151c; --card: #1c212c; --text: #e8ecf5; --muted: #9aa3b6; --line: #2c3342; --primary: #6c92ff; --good: #3fcf8e; --bad: #ff7a70; }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px;
-    background: var(--white); color: var(--pastel-text);
-    font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif; }
-  .box { width: 100%; max-width: 380px; text-align: center; border: 2px solid var(--pastel-light);
-    border-radius: 14px; padding: 28px 22px; }
-  h1 { margin: 0 0 6px; color: var(--green); font-size: 28px; }
-  .muted { color: var(--gray); font-size: 14px; margin: 0; }
-  .tabs { display: flex; margin: 20px 0 8px; background: var(--pastel-bg); border-radius: 12px; padding: 4px; }
-  .tabs button { flex: 1; padding: 10px; border: 0; border-radius: 10px; background: none; font: inherit;
-    color: var(--pastel-text); cursor: pointer; }
-  .tabs button.active { background: var(--white); color: var(--green); font-weight: 700; }
-  form { text-align: left; }
   [hidden] { display: none !important; }
-  label { display: block; font-size: 14px; margin: 12px 0 6px; }
-  input { width: 100%; padding: 11px 12px; border: 2px solid var(--pastel-light); border-radius: 10px;
-    font: inherit; color: #3f6b52; outline: none; }
-  input:focus { border-color: var(--pastel); }
-  label.check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  button { font: inherit; cursor: pointer; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px;
+    background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif; }
+  input { font: inherit; color: inherit; background: var(--card); padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 8px; width: 100%; }
+  input:focus { outline: 2px solid color-mix(in srgb, var(--primary) 40%, transparent); border-color: var(--primary); }
+  .box { width: min(380px, 100%); padding: 32px 28px; background: var(--card);
+    border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.08); }
+  h1 { margin: 0 0 6px; font-size: 24px; text-align: center; }
+  .muted { color: var(--muted); font-size: 13px; margin: 0; text-align: center; }
+  .tabs { display: flex; margin: 20px 0 8px; background: var(--bg); border-radius: 10px; padding: 4px; }
+  .tabs button { flex: 1; padding: 9px; border: 0; border-radius: 8px; background: none; color: var(--muted); }
+  .tabs button.active { background: var(--card); color: var(--primary); font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+  form { display: grid; gap: 4px; }
+  label { display: block; font-size: 14px; margin: 10px 0 6px; }
+  label.check { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--muted); }
   label.check input { width: auto; }
-  .error { color: var(--red); font-size: 14px; min-height: 20px; margin: 10px 0 0; }
-  .btn { width: 100%; padding: 11px; border: 0; border-radius: 10px; background: var(--green); color: #fff;
-    font: inherit; cursor: pointer; }
-  .btn:hover { background: var(--green-dark); }
+  .error { color: var(--bad); font-size: 13px; min-height: 18px; margin: 8px 0 0; }
+  .btn { width: 100%; padding: 11px; border: 0; border-radius: 8px; background: var(--primary); color: #fff; }
+  .btn:hover { filter: brightness(.92); }
 </style>
 </head>
 <body>

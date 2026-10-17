@@ -6,65 +6,52 @@
 <title>돈모으기운동 - 홈</title>
 <style>
   :root {
-    --green: #4caf7d; --green-dark: #3d9468; --pastel: #6fb98f; --pastel-text: #5a9e78;
-    --pastel-light: #cfe9da; --pastel-bg: #f1f9f4; --white: #fff; --gray: #8a9a91; --red: #e57373;
+    --bg: #f3f5f9; --card: #fff; --text: #1c2230; --muted: #6b7487; --line: #e3e7ef;
+    --primary: #3b6cff; --good: #1a9b5f; --bad: #d9443b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #12151c; --card: #1c212c; --text: #e8ecf5; --muted: #9aa3b6; --line: #2c3342; --primary: #6c92ff; --good: #3fcf8e; --bad: #ff7a70; }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--white); color: var(--pastel-text);
+  [hidden] { display: none !important; }
+  button { font: inherit; cursor: pointer; }
+  body { margin: 0; background: var(--bg); color: var(--text);
     font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif; }
-  a { color: var(--green); text-decoration: none; }
-  h2, h3 { color: var(--green); margin: 0 0 10px; }
-  h3 { font-size: 16px; }
-
-  /* 상단바 + 석 삼 자 메뉴 */
-  .topbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 20px; background: var(--white); border-bottom: 2px solid var(--pastel-light); }
-  .logo { font-size: 20px; font-weight: 700; color: var(--green); }
-  .menu-button { width: 40px; height: 40px; display: flex; flex-direction: column; justify-content: center;
-    align-items: center; gap: 5px; padding: 0; border: 0; border-radius: 10px; background: none; cursor: pointer; }
-  .menu-button span { display: block; width: 22px; height: 3px; border-radius: 2px; background: var(--green); }
-  .menu-button:hover { background: var(--pastel-bg); }
-  .dropdown { display: none; position: absolute; top: 100%; right: 16px; min-width: 160px; padding: 8px;
-    background: var(--white); border: 2px solid var(--pastel-light); border-radius: 14px; }
-  .dropdown.open { display: block; }
-  .dropdown a, .dropdown button { display: block; width: 100%; padding: 10px 12px; border: 0; border-radius: 10px;
-    background: none; text-align: left; font: inherit; color: var(--pastel-text); cursor: pointer; }
-  .dropdown a.active, .dropdown a:hover, .dropdown button:hover { background: var(--pastel-bg); color: var(--green); font-weight: 700; }
-  .dropdown hr { border: 0; border-top: 1px dashed var(--pastel-light); margin: 6px 0; }
-
-  /* 하단 이동바 */
-  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex;
-    background: var(--white); border-top: 2px solid var(--pastel-light); padding-bottom: env(safe-area-inset-bottom); }
-  .bottom-bar a { flex: 1; padding: 16px 4px; text-align: center; color: var(--pastel-text); white-space: nowrap; }
-  .bottom-bar a.active, .bottom-bar a:hover { background: var(--pastel-bg); color: var(--green); font-weight: 700; }
-
-  /* 본문 */
-  main { max-width: 720px; margin: 0 auto; padding: 22px 16px 100px; }
-  .card { border: 2px solid var(--pastel-light); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
-  .card.soft { background: var(--pastel-bg); border-color: transparent; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 14px; }
+  a { text-decoration: none; }
+  main { max-width: 520px; margin: 0 auto; padding: 16px 16px 90px; }
+  h2 { margin: 4px 0 14px; font-size: 20px; }
+  h3 { margin: 0 0 10px; font-size: 14px; color: var(--muted); font-weight: 600; }
+  .card { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+  .card.soft { background: var(--card); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
   .grid .card { margin-bottom: 0; }
-  .muted { color: var(--gray); font-size: 14px; }
-  .big { font-size: 26px; font-weight: 700; color: var(--green); }
-  .big.red { color: var(--red); }
+  .muted { color: var(--muted); font-size: 13px; }
+  .big { font-size: 26px; font-weight: 700; }
+  .grid .big { font-size: 20px; white-space: nowrap; }
+  #resistedTotal { color: var(--good); }
+  .big.red { color: var(--bad); }
   .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .progress { height: 14px; background: var(--pastel-light); border-radius: 999px; overflow: hidden; margin: 10px 0; }
-  .progress i { display: block; height: 100%; width: 0; background: var(--green); transition: width .5s; }
-  ul.list { list-style: none; margin: 8px 0 0; padding: 0; }
-  ul.list li { display: flex; justify-content: space-between; padding: 9px 0; border-top: 1px dashed var(--pastel-light); font-size: 14px; }
+  .progress { height: 12px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 10px 0 6px; }
+  .progress i { display: block; height: 100%; width: 0; background: var(--primary); border-radius: 99px; transition: width .5s; }
+  ul.list { list-style: none; margin: 0; padding: 0; }
+  ul.list li { display: flex; justify-content: space-between; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
   ul.list li:first-child { border-top: 0; }
-  .bad { color: var(--red); }
-  .btn { display: inline-block; padding: 10px 18px; border: 0; border-radius: 10px; background: var(--green); color: #fff; }
-  .btn:hover { background: var(--green-dark); }
+  .bad { color: var(--bad); }
+  .btn { display: inline-block; padding: 10px 18px; border: 0; border-radius: 8px; background: var(--primary); color: #fff; margin-top: 8px; }
+
+  /* 하단 네비게이션 */
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card);
+    border-top: 1px solid var(--line); display: flex; justify-content: center;
+    padding-bottom: env(safe-area-inset-bottom); }
+  .bottom-bar .inner { display: flex; width: 100%; max-width: 520px; }
+  .bottom-bar a { flex: 1; color: var(--muted); padding: 9px 0 8px; display: grid; gap: 2px;
+    justify-items: center; font-size: 11px; }
+  .bottom-bar a span { font-size: 21px; line-height: 1; }
+  .bottom-bar a.active { color: var(--primary); font-weight: 700; }
 </style>
 </head>
 <body>
-
-<header class="topbar">
-  <a class="logo" href="home.html">돈모으기운동</a>
-  <button class="menu-button" id="menuButton" aria-label="메뉴 열기"><span></span><span></span><span></span></button>
-  <div class="dropdown" id="dropdown"></div>
-</header>
 
 <main>
   <h2 id="welcome"></h2>
@@ -92,7 +79,7 @@
   </section>
 </main>
 
-<nav class="bottom-bar" id="bottomBar"></nav>
+<nav class="bottom-bar"><div class="inner" id="bottomBar"></div></nav>
 
 <script>
 /* 데이터는 팀 index.html과 같은 localStorage 키("data")를 읽습니다.
@@ -117,19 +104,16 @@ function logout() {
 const user = getCurrentUser();
 if (!user) location.replace("login.html");
 
-/* ---------- 메뉴 (하단바 + 석 삼 자 목록) ---------- */
+/* ---------- 하단 네비게이션 ---------- */
 /* 그룹/AI 채팅은 index.html의 탭(#주소로 지정), 마이는 mypage.html 입니다. */
 const pages = [
-  { name: "홈", href: "home.html", active: true },
-  { name: "그룹", href: "index.html#group" },
-  { name: "마이", href: "mypage.html" },
-  { name: "AI 채팅", href: "index.html#chat" },
+  { icon: "🏠", name: "홈", href: "home.html", active: true },
+  { icon: "👥", name: "그룹", href: "index.html#group" },
+  { icon: "👤", name: "마이", href: "mypage.html" },
+  { icon: "💬", name: "AI 채팅", href: "index.html#chat" },
 ];
-const links = pages.map((p) => `<a href="${p.href}" class="${p.active ? "active" : ""}">${p.name}</a>`).join("");
-$("bottomBar").innerHTML = links;
-$("dropdown").innerHTML = links + `<hr><button type="button" onclick="logout()">로그아웃</button>`;
-$("menuButton").onclick = (e) => { e.stopPropagation(); $("dropdown").classList.toggle("open"); };
-document.addEventListener("click", () => $("dropdown").classList.remove("open"));
+$("bottomBar").innerHTML = pages
+  .map((p) => `<a href="${p.href}" class="${p.active ? "active" : ""}"><span>${p.icon}</span>${p.name}</a>`).join("");
 
 /* ---------- 홈 화면 ---------- */
 function renderHome() {
@@ -147,21 +131,22 @@ function renderHome() {
   }
 
   const g = data.goal;
-  const pct = Math.min((g.saved / g.target) * 100, 100);
+  const pct = g.target ? Math.min((g.saved / g.target) * 100, 100) : 0;
   const remaining = Math.max(g.target - g.saved, 0);
-  const daysLeft = (new Date(g.deadline) - new Date(todayStr())) / 86400000;
-  const monthsLeft = Math.max(daysLeft / 30, 0.1);
-  const monthlyNeed = remaining / monthsLeft;
+  // 기한이 없으면 월 소득의 20%를 저축한다고 가정
+  const monthlyNeed = g.deadline
+    ? remaining / Math.max((new Date(g.deadline) - new Date(todayStr())) / 86400000 / 30, 0.1)
+    : (g.income || 0) * 0.2;
 
   $("goalCard").innerHTML = `
     <h3>저축 목표</h3>
-    <div class="row"><b>${esc(g.name)}</b><span class="muted">기한 ${esc(g.deadline)}</span></div>
+    <div class="row"><b>${esc(g.name)}</b><span class="muted">${g.deadline ? "기한 " + esc(g.deadline) : "기한 없음"}</span></div>
     <div class="big">${won(g.target)}</div>
     <div class="progress"><i style="width:${pct}%"></i></div>
     <div class="row"><span class="muted">${pct.toFixed(1)}% 달성</span><span class="muted">남은 금액 ${won(remaining)}</span></div>`;
 
   $("savedNow").textContent = won(g.saved);
-  $("monthlyNeed").textContent = `월 ${won(monthlyNeed)} 저축 필요`;
+  $("monthlyNeed").textContent = g.deadline ? `월 ${won(monthlyNeed)} 저축 필요` : `월 소득의 20%(${won(monthlyNeed)}) 저축 가정`;
 
   const resisted = data.resisted || [];
   $("resistedTotal").textContent = won(resisted.reduce((s, x) => s + x.amount, 0));
