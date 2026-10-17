@@ -6,11 +6,8 @@
 <title>마이 페이지 · 저축 앱</title>
 <style>
   :root {
-    --bg: #f3f5f9; --card: #fff; --text: #1c2230; --muted: #6b7487; --line: #e3e7ef;
-    --primary: #3b6cff; --good: #1a9b5f; --bad: #d9443b;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #12151c; --card: #1c212c; --text: #e8ecf5; --muted: #9aa3b6; --line: #2c3342; --primary: #6c92ff; --good: #3fcf8e; --bad: #ff7a70; }
+    --bg: #fff; --card: #fff; --text: #5a9e78; --muted: #8a9a91; --line: #cfe9da;
+    --primary: #4caf7d; --primary-dark: #3d9468; --soft: #f1f9f4; --good: #4caf7d; --bad: #e57373;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text);
@@ -75,6 +72,20 @@
     display: grid; gap: 2px; justify-items: center; font-size: 11px; }
   nav#tabbar a span { font-size: 21px; line-height: 1; }
   nav#tabbar a.active { color: var(--primary); font-weight: 700; }
+
+  /* ---------- 팀 초록 테마 (home.html / login.html / gruop.html과 통일) ---------- */
+  h2, .card h3 { color: var(--primary); }
+  .card { box-shadow: none; border: 2px solid var(--line); }
+  .big { color: var(--primary); }
+  .big.good { color: var(--good); } .big.bad { color: var(--bad); }
+  input, select { border-width: 2px; border-color: var(--line); }
+  .btn:hover { background: var(--primary-dark); }
+  .bar { background: var(--line); }
+  .back, .item { color: var(--text); }
+  nav#tabbar { border-top-width: 2px; }
+  nav#tabbar button, nav#tabbar a { padding: 16px 4px; font-size: 14px; display: block; text-align: center; white-space: nowrap; }
+  nav#tabbar button span, nav#tabbar a span { display: none; }
+  nav#tabbar button.active, nav#tabbar a.active, nav#tabbar button:hover, nav#tabbar a:hover { background: var(--soft); color: var(--primary); font-weight: 700; }
 </style>
 </head>
 <body>
