@@ -71,12 +71,14 @@
   </form>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="supabase.js"></script>
 <script>
-/* 주의: 서버가 없어서 계정 정보를 이 브라우저의 localStorage에만 저장합니다.
-   비밀번호도 그대로 저장되므로 연습용입니다. 실제 서비스에서는 서버에서 처리해야 합니다.
-   저장 위치: users = { 이메일: {name, password} }, currentUser = {email, name}
+/* 가입 정보와 비밀번호는 Supabase(Auth)가 안전하게 저장합니다. (supabase.js 참고)
+   이 브라우저에는 currentUser = {email, name} 만 남겨 다른 페이지가 로그인 여부를 확인합니다.
    - 자동 로그인 체크 → localStorage(브라우저를 껐다 켜도 유지)
    - 체크 안 함       → sessionStorage(브라우저를 닫으면 로그아웃) */
+const sb = window.sbApp.client;
 const $ = (id) => document.getElementById(id);
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 
@@ -102,30 +104,51 @@ function showTab(login) {
 $("loginTab").onclick = () => showTab(true);
 $("signupTab").onclick = () => showTab(false);
 
-$("signupForm").onsubmit = (e) => {
+const authMessage = (m) => {
+  if (/already registered|already been registered/i.test(m)) return "이미 가입된 이메일이에요.";
+  if (/invalid login/i.test(m)) return "이메일 또는 비밀번호가 맞지 않아요.";
+  if (/password/i.test(m)) return "비밀번호는 6자 이상이어야 해요.";
+  if (/rate limit|too many/i.test(m)) return "잠시 후 다시 시도해 주세요.";
+  if (/valid email|invalid.*email/i.test(m)) return "이메일 형식을 확인해 주세요.";
+  return "오류가 발생했어요: " + m;
+};
+
+$("signupForm").onsubmit = async (e) => {
   e.preventDefault();
+  const form = e.target, btn = form.querySelector("button[type=submit]");
   const name = $("signupName").value.trim(), email = $("signupEmail").value.trim();
   const pw = $("signupPassword").value;
   if (pw !== $("signupPassword2").value) { $("signupError").textContent = "비밀번호가 서로 달라요."; return; }
-  const users = load("users", {});
-  if (users[email]) { $("signupError").textContent = "이미 가입된 이메일이에요."; return; }
-  users[email] = { name, password: pw };
-  localStorage.setItem("users", JSON.stringify(users));
-  $("signupError").textContent = "";
-  e.target.reset();
+  btn.disabled = true; $("signupError").textContent = "";
+  const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { name } } });
+  btn.disabled = false;
+  if (error) { $("signupError").textContent = authMessage(error.message); return; }
+  // 이미 가입된 이메일이면 Supabase는 오류 대신 빈 identities를 돌려줍니다
+  if (data.user && data.user.identities && data.user.identities.length === 0) {
+    $("signupError").textContent = "이미 가입된 이메일이에요."; return;
+  }
+  await sb.auth.signOut(); // 가입 직후 자동 로그인 상태를 풀고, 아래 안내대로 직접 로그인
+  form.reset();
   showTab(true);
   $("loginEmail").value = email;
   $("loginError").textContent = "회원가입이 완료됐어요. 로그인해 주세요.";
 };
 
-$("loginForm").onsubmit = (e) => {
+$("loginForm").onsubmit = async (e) => {
   e.preventDefault();
+  const btn = e.target.querySelector("button[type=submit]");
   const email = $("loginEmail").value.trim();
-  const user = load("users", {})[email];
-  if (!user || user.password !== $("loginPassword").value) {
-    $("loginError").textContent = "이메일 또는 비밀번호가 맞지 않아요."; return;
-  }
-  const text = JSON.stringify({ email, name: user.name });
+  btn.disabled = true; $("loginError").textContent = "";
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: $("loginPassword").value });
+  btn.disabled = false;
+  if (error) { $("loginError").textContent = authMessage(error.message); return; }
+  const user = data.user;
+  // 다른 계정으로 바꿔 로그인하면 이전 계정의 데이터가 섞이지 않게 비움
+  try {
+    if (localStorage.getItem("lastUserId") && localStorage.getItem("lastUserId") !== user.id) localStorage.removeItem("data");
+    localStorage.setItem("lastUserId", user.id);
+  } catch {}
+  const text = JSON.stringify({ email: user.email, name: (user.user_metadata && user.user_metadata.name) || email.split("@")[0] });
   try { sessionStorage.removeItem("currentUser"); localStorage.removeItem("currentUser"); } catch {}
   (($("autoLogin").checked) ? localStorage : sessionStorage).setItem("currentUser", text);
   location.href = nextPage;
