@@ -118,6 +118,9 @@
       <button class="item" data-go="income">
         <span>소득 수준 설정<span class="sub" id="sub-income"></span></span><span class="chev">›</span>
       </button>
+      <button class="item" data-go="fixed">
+        <span>매달 고정 지출<span class="sub" id="sub-fixed"></span></span><span class="chev">›</span>
+      </button>
       <button class="item" data-go="held">
         <span>구매 보류 품목<span class="sub" id="sub-held"></span></span>
         <span><span class="badge" id="held-badge"></span><span class="chev">›</span></span>
@@ -167,6 +170,25 @@
     </div>
   </section>
 
+  <!-- 매달 고정 지출 -->
+  <section id="view-fixed" hidden>
+    <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>매달 고정 지출</h2></div>
+    <p class="muted" style="margin-top:0">월세, 생활비, 통신비, 보험료처럼 매달 꼭 나가는 돈을 적어 두세요.</p>
+    <div class="card">
+      <form class="stack" id="fixed-form" novalidate>
+        <label>항목 <span class="req">*</span>
+          <input name="name" maxlength="30" placeholder="예: 월세, 식비, 통신비" />
+        </label>
+        <label>매달 금액 (원) <span class="req">*</span>
+          <input name="amount" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 500000" />
+        </label>
+        <p class="error" id="fixed-error" hidden></p>
+        <button class="btn" type="submit">추가</button>
+      </form>
+    </div>
+    <div class="card" id="fixed-card"></div>
+  </section>
+
   <!-- 구매 보류 품목 -->
   <section id="view-held" hidden>
     <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>구매 보류 품목</h2></div>
@@ -211,6 +233,7 @@ let data = load("data", null) || {
   resisted: [], impulse: [], held: [], history: [],
 };
 data.held ??= [];
+data.fixed ??= [];
 const persist = () => localStorage.setItem("data", JSON.stringify(data));
 
 function toast(msg) {
@@ -219,7 +242,7 @@ function toast(msg) {
 }
 
 /* ---------- 화면 전환 (#goal, #income, #held) ---------- */
-const VIEWS = ["main", "goal", "income", "held"];
+const VIEWS = ["main", "goal", "income", "fixed", "held"];
 function route() {
   const v = location.hash.slice(1);
   const view = VIEWS.includes(v) ? v : "main";
@@ -227,6 +250,7 @@ function route() {
   if (view === "main") renderMain();
   if (view === "goal") fillGoal();
   if (view === "income") fillIncome();
+  if (view === "fixed") renderFixed();
   if (view === "held") renderHeld();
   window.scrollTo(0, 0);
 }
@@ -244,6 +268,8 @@ function renderMain() {
   const g = data.goal;
   $("sub-goal").textContent = g.name ? `${g.name} · ${won(g.target)}${g.deadline ? " · " + g.deadline : ""}` : "아직 설정하지 않았어요";
   $("sub-income").textContent = g.income ? `월 ${won(g.income)}` : "아직 설정하지 않았어요";
+  const fx = data.fixed.reduce((sum, x) => sum + x.amount, 0);
+  $("sub-fixed").textContent = data.fixed.length ? `월 ${won(fx)} · ${data.fixed.length}개 항목` : "아직 입력하지 않았어요";
   const n = data.held.length;
   $("sub-held").textContent = n ? `${n}개 품목 보류 중` : "보류 중인 품목이 없어요";
   $("held-badge").textContent = n; $("held-badge").hidden = !n;
@@ -291,6 +317,42 @@ $("income-form").onsubmit = (e) => {
   data.goal = { ...data.goal, income: Math.round(v) };
   persist(); toast("소득 수준이 저장되었습니다"); location.hash = "";
   if (!location.hash) route();
+};
+
+/* ---------- 매달 고정 지출 ---------- */
+/* data.fixed = [{ name, amount }]  저장하면 supabase.js가 DB에도 자동으로 올려줘요. */
+function renderFixed() {
+  const el = $("fixed-card");
+  if (!data.fixed.length) { el.innerHTML = '<div class="empty">아직 입력한 고정 지출이 없습니다.</div>'; return; }
+  const total = data.fixed.reduce((sum, x) => sum + x.amount, 0);
+  const income = data.goal.income;
+  const left = income ? income - total : null;
+  const rows = data.fixed.map((x, i) => `
+    <div class="row" style="padding:8px 0;border-top:1px dashed var(--line)">
+      <span>${esc(x.name)}</span>
+      <span><b>${won(x.amount)}</b> <button class="btn ghost small" data-del="${i}" type="button">삭제</button></span>
+    </div>`).join("");
+  const summary = `
+    <div class="row"><b>매달 고정 지출 합계</b><b>${won(total)}</b></div>`
+    + (income ? `<div class="muted">월 소득의 ${(total / income * 100).toFixed(1)}% · 고정 지출을 빼고 남는 돈 ${won(Math.max(left, 0))}${left < 0 ? " (소득보다 많아요)" : ""}</div>`
+                : `<div class="muted">소득을 설정하면 남는 돈도 계산해 드려요.</div>`);
+  el.innerHTML = summary + rows;
+}
+$("fixed-form").onsubmit = (e) => {
+  e.preventDefault();
+  const f = e.target.elements, err = $("fixed-error");
+  const name = f.name.value.trim(), amount = Math.round(Number(f.amount.value));
+  if (!name || !(amount > 0)) { err.textContent = "항목 이름과 1원 이상의 금액을 입력해 주세요."; err.hidden = false; return; }
+  err.hidden = true;
+  data.fixed.push({ name, amount });
+  persist(); e.target.reset(); renderFixed(); toast("고정 지출을 추가했습니다");
+};
+$("fixed-card").onclick = (e) => {
+  const b = e.target.closest("button[data-del]"); if (!b) return;
+  const i = +b.dataset.del, x = data.fixed[i];
+  if (!x || !confirm(`"${x.name}" ${won(x.amount)} 항목을 삭제할까요?`)) return;
+  data.fixed.splice(i, 1);
+  persist(); renderFixed(); toast("삭제했습니다");
 };
 
 /* ---------- 구매 보류 품목 ---------- */
