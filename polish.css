@@ -257,6 +257,9 @@ nav#tabbar a:hover:not(.active) {
 /* 떠 있는 바 때문에 채팅 입력창이 가려지지 않게 위로 올려요 */
 #chatform { bottom: 104px; }
 
+/* 전송 버튼 글자가 세로로 꺾이지 않게: 줄바꿈 금지 + 줄어들지 않게 */
+#chatform button { white-space: nowrap; flex-shrink: 0; min-width: 72px; }
+
 /* ----- 채팅 말풍선 ----- */
 .msg { box-shadow: var(--p-shadow-sm); }
 .msg.user {
