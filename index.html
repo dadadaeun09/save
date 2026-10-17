@@ -159,17 +159,9 @@ const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 /* ---------- 사용자 데이터 (처음엔 보기용 샘플로 채움) ---------- */
 function defaultData() {
   return {
-    goal: { name: "유럽 여행", target: 3000000, saved: 1200000, deadline: addDays(180), income: 2500000 },
-    resisted: [
-      { item: "게임 아이템", amount: 55000, date: todayStr() },
-      { item: "배달 음식", amount: 32000, date: todayStr() },
-      { item: "무선 키보드", amount: 100000, date: todayStr() },
-    ],
-    impulse: [
-      { item: "한정판 굿즈", amount: 48000, date: todayStr() },
-      { item: "새벽 쇼핑 티셔츠", amount: 29000, date: todayStr() },
-      { item: "배달 야식", amount: 21000, date: todayStr() },
-    ],
+    goal: { name: "유럽 여행", target: 3000000, saved: 0, deadline: addDays(180), income: 2500000 },
+    resisted: [],
+    impulse: [],
     history: [],
   };
 }
