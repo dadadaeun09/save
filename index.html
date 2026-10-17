@@ -115,23 +115,6 @@
     <p class="muted">※ 현재는 예시 데이터입니다. 금액 대신 달성률로 비교해 소득 차이 부담을 줄입니다.</p>
   </section>
 
-  <!-- 마이 -->
-  <section class="page" id="page-my" hidden>
-    <h2>마이 페이지</h2>
-    <div class="card">
-      <h3>저축 목표 설정</h3>
-      <form id="goal-form" class="stack" style="display:grid;gap:12px">
-        <label class="muted">목표 이름<input name="name" required /></label>
-        <label class="muted">목표 금액 (원)<input name="target" type="number" min="1" required /></label>
-        <label class="muted">현재 저축액 (원)<input name="saved" type="number" min="0" required /></label>
-        <label class="muted">기한<input name="deadline" type="date" required /></label>
-        <label class="muted">월 소득 (원)<input name="income" type="number" min="1" required /></label>
-        <button class="btn" type="submit">저장</button>
-        <span class="muted" id="goal-saved-msg" hidden>저장되었습니다.</span>
-      </form>
-    </div>
-  </section>
-
   <!-- AI 채팅 -->
   <section class="page" id="page-chat" hidden>
     <h2>AI 구매 상담</h2>
