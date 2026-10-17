@@ -44,7 +44,13 @@
   .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--primary); color: #fff;
     display: grid; place-items: center; font-size: 20px; font-weight: 700; flex: none; }
   .profile .name { font-size: 18px; font-weight: 700; }
-  .name-edit { display: flex; gap: 6px; margin-top: 10px; }
+  .name-edit { margin-top: 12px; }
+  .avatar.has-photo { background-size: cover; background-position: center; color: transparent; }
+  .avatar.avatar-lg { width: 72px; height: 72px; font-size: 28px; }
+  .photo-row { display: flex; align-items: center; gap: 14px; }
+  .photo-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .form-actions { display: flex; gap: 8px; }
+  .profile-sub { color: var(--muted); font-size: 13px; }
 
   /* 폼 */
   form.stack { display: grid; gap: 14px; }
@@ -102,12 +108,33 @@
         <div style="flex:1;min-width:0">
           <div class="name" id="user-name"></div>
           <div class="muted">사용자 이름</div>
+          <div class="profile-sub" id="profile-sub" hidden></div>
         </div>
         <button class="btn ghost small" id="name-edit-btn">수정</button>
       </div>
-      <form class="name-edit" id="name-form" hidden>
-        <input id="name-input" maxlength="20" placeholder="이름 입력" required />
-        <button class="btn small" type="submit">저장</button>
+      <form class="stack name-edit" id="name-form" hidden novalidate>
+        <div class="photo-row">
+          <div class="avatar avatar-lg" id="photo-preview"></div>
+          <div class="photo-actions">
+            <button type="button" class="btn ghost small" id="photo-pick">사진 변경</button>
+            <button type="button" class="btn ghost small" id="photo-remove">사진 삭제</button>
+            <input type="file" id="photo-file" accept="image/*" hidden />
+          </div>
+        </div>
+        <label><span>이름 <span class="req">*</span></span>
+          <input id="name-input" maxlength="20" placeholder="이름 입력" />
+        </label>
+        <label><span>나이 <span class="opt">(선택)</span></span>
+          <input id="age-input" type="number" inputmode="numeric" min="1" max="120" step="1" placeholder="예: 25" />
+        </label>
+        <label><span>직업 <span class="opt">(선택)</span></span>
+          <input id="job-input" maxlength="30" placeholder="예: 대학생, 회사원, 프리랜서" />
+        </label>
+        <p class="error" id="profile-error" hidden></p>
+        <div class="form-actions">
+          <button class="btn small" type="submit">저장</button>
+          <button class="btn ghost small" type="button" id="profile-cancel">취소</button>
+        </div>
       </form>
     </div>
 
@@ -234,6 +261,7 @@ let data = load("data", null) || {
 };
 data.held ??= [];
 data.fixed ??= [];
+data.profile ??= {};   // { photo(작은 이미지 데이터), age, job } - 사진·나이·직업은 모두 선택 항목
 const persist = () => localStorage.setItem("data", JSON.stringify(data));
 
 function toast(msg) {
@@ -264,7 +292,9 @@ window.addEventListener("hashchange", route);
 function renderMain() {
   const name = (user && user.name) || "사용자";
   $("user-name").textContent = name;
-  $("avatar").textContent = name.slice(0, 1);
+  paintAvatar($("avatar"), data.profile.photo, name);
+  const info = [data.profile.age ? `${data.profile.age}세` : "", data.profile.job || ""].filter(Boolean).join(" · ");
+  $("profile-sub").textContent = info; $("profile-sub").hidden = !info;
   const g = data.goal;
   $("sub-goal").textContent = g.name ? `${g.name} · ${won(g.target)}${g.deadline ? " · " + g.deadline : ""}` : "아직 설정하지 않았어요";
   $("sub-income").textContent = g.income ? `월 ${won(g.income)}` : "아직 설정하지 않았어요";
@@ -274,19 +304,79 @@ function renderMain() {
   $("sub-held").textContent = n ? `${n}개 품목 보류 중` : "보류 중인 품목이 없어요";
   $("held-badge").textContent = n; $("held-badge").hidden = !n;
 }
-$("name-edit-btn").onclick = () => {
-  $("name-form").hidden = !$("name-form").hidden;
-  $("name-input").value = (user && user.name) || ""; $("name-input").focus();
+/* ---------- 프로필 (이름 · 사진 · 나이 · 직업) ---------- */
+/* 이름은 로그인 계정(Supabase Auth)에, 사진·나이·직업은 data.profile에 저장해요(DB에도 자동 동기화). */
+let pendingPhoto;   // undefined: 그대로 · null: 삭제 · 문자열: 새 사진
+
+function paintAvatar(el, photo, name) {
+  el.classList.toggle("has-photo", !!photo);
+  el.style.backgroundImage = photo ? `url("${photo}")` : "";
+  el.textContent = photo ? "" : (name || "?").slice(0, 1);
+}
+function openProfileForm() {
+  const name = (user && user.name) || "";
+  pendingPhoto = undefined;
+  $("name-input").value = name;
+  $("age-input").value = data.profile.age || "";
+  $("job-input").value = data.profile.job || "";
+  $("profile-error").hidden = true;
+  paintAvatar($("photo-preview"), data.profile.photo, name);
+  $("name-form").hidden = false; $("name-input").focus();
+}
+$("name-edit-btn").onclick = () => { $("name-form").hidden ? openProfileForm() : ($("name-form").hidden = true); };
+$("profile-cancel").onclick = () => { $("name-form").hidden = true; };
+
+$("photo-pick").onclick = () => $("photo-file").click();
+$("photo-remove").onclick = () => { pendingPhoto = null; paintAvatar($("photo-preview"), null, $("name-input").value.trim() || (user && user.name)); };
+
+/* 고른 사진을 정사각형(가운데 기준)으로 잘라 200px로 줄여요. 용량이 작아야 저장이 빨라요. */
+function shrinkPhoto(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const side = Math.min(img.width, img.height), SIZE = 200;
+      const c = document.createElement("canvas"); c.width = c.height = SIZE;
+      c.getContext("2d").drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, SIZE, SIZE);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("이미지를 읽을 수 없어요")); };
+    img.src = url;
+  });
+}
+$("photo-file").onchange = async (e) => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  const err = $("profile-error");
+  if (!f.type.startsWith("image/")) { err.textContent = "이미지 파일만 고를 수 있어요."; err.hidden = false; return; }
+  try {
+    pendingPhoto = await shrinkPhoto(f); err.hidden = true;
+    paintAvatar($("photo-preview"), pendingPhoto, "");
+  } catch (ex) { err.textContent = ex.message; err.hidden = false; }
 };
+
 $("name-form").onsubmit = async (e) => {
   e.preventDefault();
-  const v = $("name-input").value.trim(); if (!v) return;
-  const { error } = await sbApp.client.auth.updateUser({ data: { name: v } });
-  if (error) { toast("이름 변경에 실패했어요"); return; }
-  user.name = v;
-  const store = sessionStorage.getItem("currentUser") ? sessionStorage : localStorage;
-  store.setItem("currentUser", JSON.stringify(user));
-  $("name-form").hidden = true; renderMain(); toast("이름이 변경되었습니다");
+  const err = $("profile-error"); err.hidden = true;
+  const v = $("name-input").value.trim();
+  const ageRaw = $("age-input").value.trim(), job = $("job-input").value.trim();
+  const age = ageRaw === "" ? "" : Math.round(Number(ageRaw));
+  const fail = (m) => { err.textContent = m; err.hidden = false; };
+  if (!v) return fail("이름을 입력해 주세요.");
+  if (age !== "" && !(age >= 1 && age <= 120)) return fail("나이는 1~120 사이의 숫자로 입력해 주세요.");
+
+  if (v !== user.name) {
+    const { error } = await sbApp.client.auth.updateUser({ data: { name: v } });
+    if (error) return fail("이름 변경에 실패했어요.");
+    user.name = v;
+    const store = sessionStorage.getItem("currentUser") ? sessionStorage : localStorage;
+    store.setItem("currentUser", JSON.stringify(user));
+  }
+  if (pendingPhoto !== undefined) { if (pendingPhoto) data.profile.photo = pendingPhoto; else delete data.profile.photo; }
+  if (age === "") delete data.profile.age; else data.profile.age = age;
+  if (job) data.profile.job = job; else delete data.profile.job;
+  persist();
+  $("name-form").hidden = true; renderMain(); toast("프로필이 저장되었습니다");
 };
 
 /* ---------- 저축 목표 ---------- */
