@@ -1,0 +1,216 @@
+/* =========================================================
+   polish.css - 사이트 전체에 덧입히는 "세련됨" 디자인
+   ---------------------------------------------------------
+   각 페이지의 <head> 맨 끝에 한 줄로 불러와요:
+     <link rel="stylesheet" href="polish.css">
+   페이지 안의 기존 <style> 뒤에 읽혀서 기존 디자인 위에 덮어써져요.
+   색상은 팀 초록 테마(#4caf7d / 파스텔 초록)를 그대로 써요.
+   이 파일만 지우면 예전 모습으로 돌아가요.
+   ========================================================= */
+
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+
+:root {
+  --p-green: #4caf7d;
+  --p-green-dark: #3d9468;
+  --p-green-light: #7bc9a0;
+  --p-text: #3f7d5d;                 /* 글자: 파스텔 초록이지만 읽기 편하게 살짝 진하게 */
+  --p-muted: #8ea398;
+  --p-line: #e0f0e7;
+  --p-soft: #f3faf6;
+  --p-shadow: 0 6px 24px rgba(76, 175, 125, 0.12);
+  --p-shadow-sm: 0 2px 10px rgba(76, 175, 125, 0.10);
+}
+
+/* ----- 바탕과 글꼴 ----- */
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Pretendard", system-ui, -apple-system, "Malgun Gothic", sans-serif;
+  background: linear-gradient(180deg, #f7fcf9 0%, #ffffff 280px);
+  background-attachment: fixed;
+  color: var(--p-text);
+  line-height: 1.55;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+h2 { font-size: 22px; letter-spacing: -0.03em; }
+h2, h3 { font-weight: 700; }
+
+/* 페이지가 열릴 때 부드럽게 나타나요 */
+@keyframes p-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+main, #app > .page:not([hidden]) {
+  animation: p-rise 0.4s ease both;
+}
+
+/* ----- 카드 ----- */
+.card {
+  background: #fff;
+  border: 1px solid var(--p-line);
+  border-radius: 20px;
+  box-shadow: var(--p-shadow-sm);
+  padding: 20px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.card:hover { box-shadow: var(--p-shadow); }
+
+.card.soft {
+  background: linear-gradient(135deg, #e9f7f0 0%, #f6fcf9 100%);
+  border-color: transparent;
+}
+
+.card h3 { font-weight: 700; letter-spacing: -0.02em; }
+
+/* ----- 숫자 ----- */
+.big { font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+.muted { color: var(--p-muted); }
+
+/* ----- 버튼 ----- */
+.btn {
+  background: linear-gradient(135deg, var(--p-green-light) 0%, var(--p-green) 100%);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 14px;
+  padding: 12px 20px;
+  box-shadow: 0 4px 14px rgba(76, 175, 125, 0.30);
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+}
+.btn:hover {
+  background: linear-gradient(135deg, var(--p-green-light) 0%, var(--p-green-dark) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(76, 175, 125, 0.38);
+}
+.btn:active { transform: translateY(0) scale(0.98); }
+
+.btn.ghost, .btn.outline {
+  background: #fff;
+  color: var(--p-green);
+  border: 1.5px solid var(--p-line);
+  box-shadow: none;
+}
+.btn.ghost:hover, .btn.outline:hover { background: var(--p-soft); box-shadow: none; }
+
+.btn.danger { box-shadow: none; }
+
+/* ----- 입력창 ----- */
+input, select, textarea {
+  border: 1.5px solid #d9eee2;
+  border-radius: 14px;
+  background: #fcfefd;
+  color: #2f6a4c;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+input::placeholder { color: #a9c1b3; }
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  background: #fff;
+  border-color: var(--p-green);
+  box-shadow: 0 0 0 4px rgba(76, 175, 125, 0.15);
+}
+
+/* ----- 진행 막대 ----- */
+.bar, .progress {
+  background: #e4f3ea;
+  border-radius: 999px;
+}
+.bar > i, .progress i {
+  background: linear-gradient(90deg, var(--p-green-light), var(--p-green));
+  border-radius: 999px;
+}
+
+/* ----- 목록 ----- */
+ul.list li { border-color: var(--p-line); }
+.member { border-color: var(--p-line); }
+.member.me { background: var(--p-soft); border-radius: 12px; padding-left: 10px; padding-right: 10px; }
+
+.badge, .tag {
+  background: #e4f4ec;
+  color: var(--p-green-dark);
+  border-radius: 999px;
+}
+
+/* ----- 상단바 ----- */
+.topbar, .navbar {
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--p-line);
+}
+.logo { letter-spacing: -0.04em; }
+
+.dropdown {
+  border: 1px solid var(--p-line);
+  border-radius: 16px;
+  box-shadow: var(--p-shadow);
+  background: #fff;
+}
+.dropdown a, .dropdown button { border-radius: 12px; }
+
+/* ----- 하단 이동바 ----- */
+.bottom-bar, nav#tabbar {
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--p-line);
+  box-shadow: 0 -6px 20px rgba(76, 175, 125, 0.08);
+}
+.bottom-bar a {
+  font-size: 14px;
+  padding: 15px 4px;
+  position: relative;
+  transition: color 0.15s, background 0.15s;
+}
+.bottom-bar a.active, .bottom-bar a:hover {
+  background: transparent;
+  color: var(--p-green);
+}
+/* 지금 보고 있는 칸 위에 초록 막대 */
+.bottom-bar a.active::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 28%; right: 28%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--p-green);
+}
+nav#tabbar button { transition: color 0.15s; }
+nav#tabbar button.active { color: var(--p-green); }
+
+/* ----- 채팅 말풍선 ----- */
+.msg { box-shadow: var(--p-shadow-sm); }
+.msg.user {
+  background: linear-gradient(135deg, var(--p-green-light), var(--p-green));
+  border-radius: 18px 18px 4px 18px;
+}
+.msg.ai {
+  border: 1px solid var(--p-line);
+  border-radius: 18px 18px 18px 4px;
+}
+.choices button {
+  border: 1.5px solid var(--p-line);
+  background: #fff;
+  color: var(--p-green);
+  transition: background 0.15s;
+}
+.choices button:hover { background: var(--p-soft); }
+
+/* ----- 로그인 상자 ----- */
+.box {
+  border: 1px solid var(--p-line);
+  border-radius: 24px;
+  box-shadow: 0 12px 40px rgba(76, 175, 125, 0.16);
+  background: #fff;
+}
+.tabs { background: #eef8f2; border-radius: 14px; }
+.tabs button { transition: background 0.15s, color 0.15s, box-shadow 0.15s; }
+.tabs button.active { box-shadow: 0 2px 8px rgba(76, 175, 125, 0.18); }
+.error { font-size: 13px; }
+
+/* ----- 움직임을 싫어하는 사용자 설정을 존중해요 ----- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
