@@ -7,7 +7,7 @@ app.use(express.json());
 app.set("trust proxy", 1);
 
 // 허용한 사이트(GitHub Pages)에서만 이 서버를 부를 수 있게 함
-const ALLOWED = ["https://dadadaeun09.github.io", "http://localhost:3000"];
+const ALLOWED = ["https://dadadaeun09.github.io", "https://spendict.vercel.app", "http://localhost:3000"];
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (ALLOWED.includes(origin)) res.setHeader("Access-Control-Allow-Origin", origin);
