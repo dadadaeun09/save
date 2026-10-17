@@ -206,7 +206,7 @@ function renderHome() {
     ? `이 돈을 저축했다면 목표 달성이 약 ${Math.round(delay)}일 빨랐습니다.`
     : "이번 달 충동구매가 없습니다.";
   $("impulseList").innerHTML = imp.slice().reverse()
-    .map((x) => `<li><span>${esc(x.item)}</span><span class="right"><span class="bad">-${won(x.amount)}</span><button type="button" class="del" onclick="removeImpulse(${x.i})">삭제</button></span></li>`).join("");
+    .map((x) => `<li><span>${esc(x.item)} <span class="muted">${esc(x.date)}</span></span><span class="right"><span class="bad">-${won(x.amount)}</span><button type="button" class="del" onclick="removeImpulse(${x.i})">삭제</button></span></li>`).join("");
 }
 
 /* ---------- 충동구매 추가 / 삭제 ---------- */

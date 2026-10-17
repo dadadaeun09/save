@@ -4,6 +4,16 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>저축 앱</title>
+<script>
+/* 사이트 첫 화면 입구: 로그인 안 했으면 로그인/회원가입 페이지로, 로그인(자동 로그인 포함)했으면 홈 화면으로 보냅니다.
+   index.html#chat 처럼 #주소가 붙은 경우(AI 채팅 등)는 그대로 열어요. */
+(function () {
+  var user = null;
+  try { user = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser"); } catch (e) {}
+  if (!user) location.replace("login.html");
+  else if (!location.hash) location.replace("home.html");
+})();
+</script>
 <style>
   :root {
     --bg: #fff; --card: #fff; --text: #5a9e78; --muted: #8a9a91; --line: #cfe9da;
