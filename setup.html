@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>돈모으기운동 - 처음 설정</title>
+<style>
+  :root {
+    --green: #4caf7d; --green-dark: #3d9468; --pastel: #6fb98f; --pastel-text: #5a9e78;
+    --pastel-light: #cfe9da; --pastel-bg: #f1f9f4; --white: #fff; --gray: #8a9a91; --red: #e57373;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; padding: 24px 16px 48px; background: var(--white); color: var(--pastel-text);
+    font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif; }
+  main { max-width: 480px; margin: 0 auto; }
+  h1 { margin: 0 0 6px; color: var(--green); font-size: 26px; }
+  h2 { margin: 0 0 4px; color: var(--green); font-size: 17px; }
+  .muted { color: var(--gray); font-size: 14px; margin: 0; }
+  .card { border: 2px solid var(--pastel-light); border-radius: 14px; padding: 18px; margin: 14px 0; }
+  label { display: block; font-size: 14px; margin: 12px 0 6px; }
+  .req { color: var(--red); }
+  .opt { color: var(--gray); }
+  input { width: 100%; padding: 11px 12px; border: 2px solid var(--pastel-light); border-radius: 10px;
+    font: inherit; color: #3f6b52; outline: none; }
+  input:focus { border-color: var(--pastel); }
+  .btn { width: 100%; padding: 12px; border: 0; border-radius: 10px; background: var(--green); color: #fff;
+    font: inherit; cursor: pointer; }
+  .btn:hover { background: var(--green-dark); }
+  .btn:disabled { opacity: .6; cursor: default; }
+  .btn.ghost { background: var(--white); color: var(--green); border: 2px solid var(--pastel-light); }
+  .btn.ghost:hover { background: var(--pastel-bg); }
+  .btn.small { width: auto; padding: 6px 12px; font-size: 13px; }
+  .fixed-add { display: grid; grid-template-columns: 1fr 120px auto; gap: 8px; align-items: center; margin-top: 10px; }
+  .fixed-add input { margin: 0; }
+  .item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 0;
+    border-top: 1px dashed var(--pastel-light); font-size: 14px; }
+  .error { color: var(--red); font-size: 14px; margin: 12px 0 0; min-height: 20px; }
+  .step { display: inline-block; margin-bottom: 8px; padding: 2px 10px; border-radius: 999px;
+    background: var(--pastel-bg); color: var(--green); font-size: 12px; }
+  @media (max-width: 480px) { .fixed-add { grid-template-columns: 1fr 1fr; } .fixed-add .btn { grid-column: 1 / -1; } }
+</style>
+<link rel="stylesheet" href="polish.css" />
+</head>
+<body>
+
+<main>
+  <span class="step">처음 한 번만 하는 설정</span>
+  <h1>시작하기 전에 알려주세요</h1>
+  <p class="muted">입력한 내용은 나중에 마이 페이지에서 언제든 바꿀 수 있어요.</p>
+
+  <form id="setupForm" novalidate>
+    <div class="card">
+      <h2>저축 목표</h2>
+      <label for="goalName">저축 목표 <span class="req">*</span></label>
+      <input id="goalName" maxlength="30" placeholder="예: 유럽 여행, 노트북 구매" />
+      <label for="goalTarget">목표 금액 (원) <span class="req">*</span></label>
+      <input id="goalTarget" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 3000000" />
+      <label for="goalDeadline">목표 기한 <span class="req">*</span></label>
+      <input id="goalDeadline" type="date" />
+    </div>
+
+    <div class="card">
+      <h2>소득 수준</h2>
+      <label for="income">한 달 소득 (원) <span class="req">*</span></label>
+      <input id="income" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 2500000" />
+    </div>
+
+    <div class="card">
+      <h2>매달 고정 지출 <span class="opt">(선택)</span></h2>
+      <p class="muted">월세, 식비, 통신비처럼 매달 꼭 나가는 돈이에요. 없으면 비워 두세요.</p>
+      <div class="fixed-add">
+        <input id="fxName" maxlength="30" placeholder="항목 (예: 월세)" />
+        <input id="fxAmount" type="number" inputmode="numeric" min="1" step="1" placeholder="금액(원)" />
+        <button class="btn ghost small" id="fxAdd" type="button">추가</button>
+      </div>
+      <div id="fxList"></div>
+    </div>
+
+    <p class="error" id="error" role="alert"></p>
+    <button class="btn" id="submitBtn" type="submit">시작하기</button>
+  </form>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="supabase.js"></script>
+<script>
+/* 처음 회원가입하고 로그인했을 때만 거치는 설정 페이지예요. (login.html이 여기로 보내 줍니다)
+   입력한 값은 다른 페이지와 같은 localStorage "data"에 저장하고, supabase.js가 DB에도 자동으로 올려줘요.
+   data = { goal:{name,target,saved,deadline,income}, fixed:[{name,amount}], setupDone:true, ... } */
+const $ = (id) => document.getElementById(id);
+const won = (n) => Math.round(n).toLocaleString("ko-KR") + "원";
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+
+function getCurrentUser() {
+  try {
+    const t = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser");
+    return t ? JSON.parse(t) : null;
+  } catch { return null; }
+}
+/* 설정이 끝난 뒤 갈 페이지 (?next=group.html). 사이트 안의 .html 파일만 허용 */
+const nextPage = (() => {
+  const n = new URLSearchParams(location.search).get("next") || "";
+  return /^[\w-]+\.html$/.test(n) ? n : "home.html";
+})();
+
+/* 로그인 안 했으면 로그인 페이지로, 이미 설정한 사람이면 설정 없이 바로 다음 페이지로 */
+/* login.html이 보낸 경우(?first=1)는 이 브라우저에 남은 예전 데이터와 상관없이 설정을 보여주고,
+   주소를 직접 연 경우에는 이미 목표가 있으면 설정 없이 돌려보내요. */
+const existing = load("data", null);
+const fromLogin = new URLSearchParams(location.search).get("first") === "1";
+const alreadySet = existing && (existing.setupDone || (!fromLogin && existing.goal && Number(existing.goal.target) > 0));
+if (!getCurrentUser()) location.replace("login.html");
+else if (alreadySet) location.replace(nextPage);
+
+/* ----- 고정 지출 목록 ----- */
+const fixed = [];
+function renderFixed() {
+  $("fxList").innerHTML = fixed.map((x, i) =>
+    `<div class="item"><span>${esc(x.name)}</span><span><b>${won(x.amount)}</b> <button class="btn ghost small" type="button" data-del="${i}">삭제</button></span></div>`
+  ).join("");
+}
+function addFixedFromInputs() {
+  const name = $("fxName").value.trim(), amount = Math.round(Number($("fxAmount").value));
+  if (!name && !$("fxAmount").value) return true;            // 비어 있으면 그냥 통과
+  if (!name || !(amount > 0)) { $("error").textContent = "고정 지출은 항목 이름과 1원 이상의 금액을 함께 입력해 주세요."; return false; }
+  fixed.push({ name, amount });
+  $("fxName").value = ""; $("fxAmount").value = "";
+  renderFixed();
+  return true;
+}
+$("fxAdd").onclick = () => { $("error").textContent = ""; addFixedFromInputs(); };
+$("fxList").onclick = (e) => {
+  const b = e.target.closest("button[data-del]"); if (!b) return;
+  fixed.splice(+b.dataset.del, 1); renderFixed();
+};
+
+/* ----- 저장 ----- */
+$("setupForm").onsubmit = (e) => {
+  e.preventDefault();
+  const err = $("error"); err.textContent = "";
+  const name = $("goalName").value.trim();
+  const target = Math.round(Number($("goalTarget").value));
+  const deadline = $("goalDeadline").value;
+  const income = Math.round(Number($("income").value));
+  if (!name) { err.textContent = "저축 목표를 입력해 주세요."; return; }
+  if (!(target > 0)) { err.textContent = "목표 금액을 1원 이상으로 입력해 주세요."; return; }
+  if (!deadline) { err.textContent = "목표 기한을 선택해 주세요."; return; }
+  if (!(income > 0)) { err.textContent = "한 달 소득을 1원 이상으로 입력해 주세요."; return; }
+  if (!addFixedFromInputs()) return;
+
+  const data = load("data", null) || { resisted: [], impulse: [], held: [], history: [] };
+  data.goal = { name, target, saved: 0, deadline, income };
+  data.fixed = fixed.slice();
+  data.setupDone = true;
+  localStorage.setItem("data", JSON.stringify(data));
+
+  /* supabase.js가 잠깐 뒤(0.4초)에 DB로 올리므로, 그 전에 페이지를 떠나지 않게 기다려요 */
+  $("submitBtn").disabled = true; $("submitBtn").textContent = "저장 중...";
+  setTimeout(() => location.replace(nextPage), 1000);
+};
+</script>
+</body>
+</html>
