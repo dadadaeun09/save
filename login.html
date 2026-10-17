@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>돈모으기운동 - 로그인</title>
+<title>SPENDICT - Sign In</title>
 <style>
   :root {
     --green: #4caf7d; --green-dark: #3d9468; --pastel: #6fb98f; --pastel-text: #5a9e78;
@@ -39,22 +39,22 @@
 <body>
 
 <div class="box">
-  <h1>돈모으기운동</h1>
+  <h1>SPENDICT</h1>
   <p class="muted">목표한 돈, AI와 함께 똑똑하게 모아요</p>
 
   <div class="tabs">
-    <button id="loginTab" class="active" type="button">로그인</button>
-    <button id="signupTab" type="button">회원가입</button>
+    <button id="loginTab" class="active" type="button">Sign In</button>
+    <button id="signupTab" type="button">Sign Up</button>
   </div>
 
   <form id="loginForm">
-    <label for="loginEmail">이메일</label>
+    <label for="loginEmail">Email</label>
     <input type="email" id="loginEmail" placeholder="example@email.com" required />
-    <label for="loginPassword">비밀번호</label>
-    <input type="password" id="loginPassword" placeholder="비밀번호" required />
+    <label for="loginPassword">Password</label>
+    <input type="password" id="loginPassword" placeholder="Password" required />
     <label class="check" style="margin-top:14px"><input type="checkbox" id="autoLogin" /> 자동 로그인</label>
     <p class="error" id="loginError"></p>
-    <button type="submit" class="btn">로그인</button>
+    <button type="submit" class="btn">Sign In</button>
   </form>
 
   <form id="signupForm" hidden>
