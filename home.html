@@ -118,11 +118,11 @@ const user = getCurrentUser();
 if (!user) location.replace("login.html");
 
 /* ---------- 메뉴 (하단바 + 석 삼 자 목록) ---------- */
-/* 그룹/마이/AI 채팅은 팀 index.html의 탭입니다. #주소로 어느 탭을 열지 넘깁니다. */
+/* 그룹/AI 채팅은 index.html의 탭(#주소로 지정), 마이는 mypage.html 입니다. */
 const pages = [
   { name: "홈", href: "home.html", active: true },
   { name: "그룹", href: "index.html#group" },
-  { name: "마이", href: "index.html#my" },
+  { name: "마이", href: "mypage.html" },
   { name: "AI 채팅", href: "index.html#chat" },
 ];
 const links = pages.map((p) => `<a href="${p.href}" class="${p.active ? "active" : ""}">${p.name}</a>`).join("");
@@ -138,7 +138,7 @@ function renderHome() {
 
   // 아직 목표가 없으면 안내만 보여줘요
   if (!data || !data.goal) {
-    $("goalCard").innerHTML = `<h3>저축 목표</h3><p class="muted">아직 목표가 없어요.</p><a class="btn" href="index.html#my">목표 설정하러 가기</a>`;
+    $("goalCard").innerHTML = `<h3>저축 목표</h3><p class="muted">아직 목표가 없어요.</p><a class="btn" href="mypage.html#goal">목표 설정하러 가기</a>`;
     $("savedNow").textContent = won(0); $("monthlyNeed").textContent = "";
     $("resistedTotal").textContent = won(0); $("resistedCount").textContent = "";
     $("impulseTotal").textContent = won(0); $("impulseCount").textContent = "";

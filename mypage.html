@@ -162,7 +162,7 @@
   </section>
 
   <nav id="tabbar"><div class="inner">
-    <a href="index.html#home"><span>🏠</span>홈</a>
+    <a href="home.html"><span>🏠</span>홈</a>
     <a href="index.html#group"><span>👥</span>그룹</a>
     <a href="mypage.html" class="active"><span>👤</span>마이</a>
     <a href="index.html#chat"><span>💬</span>AI 채팅</a>
@@ -178,6 +178,19 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 
 /* index.html과 같은 localStorage 키("data")를 공유한다 */
+/* 로그인 정보 (login.html과 같은 저장 방식) */
+function getCurrentUser() {
+  try {
+    const t = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser");
+    return t ? JSON.parse(t) : null;
+  } catch { return null; }
+}
+function clearCurrentUser() {
+  try { localStorage.removeItem("currentUser"); sessionStorage.removeItem("currentUser"); } catch {}
+}
+const user = getCurrentUser();
+if (!user) location.replace("login.html");
+
 let data = load("data", null) || {
   goal: { name: "", target: 0, saved: 0, deadline: "", income: 0 },
   resisted: [], impulse: [], held: [], history: [],
@@ -210,7 +223,7 @@ window.addEventListener("hashchange", route);
 
 /* ---------- 메인 ---------- */
 function renderMain() {
-  const name = data.userName || "사용자";
+  const name = (user && user.name) || "사용자";
   $("user-name").textContent = name;
   $("avatar").textContent = name.slice(0, 1);
   const g = data.goal;
@@ -222,12 +235,17 @@ function renderMain() {
 }
 $("name-edit-btn").onclick = () => {
   $("name-form").hidden = !$("name-form").hidden;
-  $("name-input").value = data.userName || ""; $("name-input").focus();
+  $("name-input").value = (user && user.name) || ""; $("name-input").focus();
 };
 $("name-form").onsubmit = (e) => {
   e.preventDefault();
   const v = $("name-input").value.trim(); if (!v) return;
-  data.userName = v; persist(); $("name-form").hidden = true; renderMain(); toast("이름이 변경되었습니다");
+  user.name = v;
+  const store = sessionStorage.getItem("currentUser") ? sessionStorage : localStorage;
+  store.setItem("currentUser", JSON.stringify(user));
+  const users = load("users", {});
+  if (users[user.email]) { users[user.email].name = v; localStorage.setItem("users", JSON.stringify(users)); }
+  $("name-form").hidden = true; renderMain(); toast("이름이 변경되었습니다");
 };
 
 /* ---------- 저축 목표 ---------- */
@@ -283,15 +301,17 @@ $("held-card").onclick = (e) => {
   data.held.splice(i, 1); persist(); renderHeld();
 };
 
-/* ---------- 로그아웃 / 회원 탈퇴 ----------
-   아직 로그인 기능이 없으므로 임시 동작: 로그아웃은 홈으로 이동,
-   회원 탈퇴는 이 기기에 저장된 모든 데이터를 지운다. */
-$("logout").onclick = () => { if (confirm("로그아웃 하시겠어요?")) location.href = "index.html"; };
+/* ---------- 로그아웃 / 회원 탈퇴 ---------- */
+$("logout").onclick = () => { if (confirm("로그아웃 하시겠어요?")) { clearCurrentUser(); location.href = "login.html"; } };
 $("withdraw").onclick = () => {
   if (!confirm("회원 탈퇴 시 저장된 모든 데이터(목표, 소비 기록 등)가 삭제되며 되돌릴 수 없습니다.\n정말 탈퇴하시겠어요?")) return;
+  const users = load("users", {});
+  if (user) delete users[user.email];
+  localStorage.setItem("users", JSON.stringify(users));
   localStorage.removeItem("data");
+  clearCurrentUser();
   alert("탈퇴가 완료되었습니다.");
-  location.href = "index.html";
+  location.href = "login.html";
 };
 
 route();
