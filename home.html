@@ -54,6 +54,7 @@
   ul.list li { display: flex; justify-content: space-between; padding: 9px 0; border-top: 1px dashed var(--pastel-light); font-size: 14px; }
   ul.list li:first-child { border-top: 0; }
   .bad { color: var(--red); }
+  .good { color: var(--green); }
   .btn { display: inline-block; padding: 10px 18px; border: 0; border-radius: 10px; background: var(--green); color: #fff; }
   .btn:hover { background: var(--green-dark); }
 
@@ -93,6 +94,17 @@
       <div class="muted" id="resistedCount"></div>
     </section>
   </div>
+
+  <section class="card">
+    <h3>저축 기록</h3>
+    <div class="muted">저축한 금액을 적으면 현재 저축액에 더해지고, 삭제하면 다시 빠져요.</div>
+    <form class="imp-form" id="savForm">
+      <input type="text" id="savMemo" placeholder="메모 (예: 월급 저축)" maxlength="40" />
+      <input type="number" id="savAmount" placeholder="금액(원)" min="1" step="1" required />
+      <button class="btn" type="submit">추가</button>
+    </form>
+    <ul class="list" id="savingsList"></ul>
+  </section>
 
   <section class="card">
     <h3>이번 달 충동구매</h3>
@@ -157,6 +169,7 @@ function renderHome() {
   if (!data || !data.goal) {
     $("goalCard").innerHTML = `<h3>저축 목표</h3><p class="muted">아직 목표가 없어요.</p><a class="btn" href="mypage.html#goal">목표 설정하러 가기</a>`;
     $("savedNow").textContent = won(0); $("monthlyNeed").textContent = "";
+    $("savingsList").innerHTML = `<li class="muted">목표를 설정하면 저축을 기록할 수 있어요.</li>`;
     $("resistedTotal").textContent = won(0); $("resistedCount").textContent = "";
     $("impulseTotal").textContent = won(0); $("impulseCount").textContent = "";
     $("impulseEffect").textContent = "이번 달 충동구매가 없습니다.";
@@ -178,6 +191,10 @@ function renderHome() {
     <div class="row"><span class="muted">${pct.toFixed(1)}% 달성</span><span class="muted">남은 금액 ${won(remaining)}</span></div>`;
 
   $("savedNow").textContent = won(g.saved);
+  const sav = (data.savings || []).map((x, i) => ({ ...x, i })).reverse().slice(0, 10);
+  $("savingsList").innerHTML = sav.length
+    ? sav.map((x) => `<li><span>${esc(x.memo || "저축")} <span class="muted">${esc(x.date)}</span></span><span class="right"><span class="good">+${won(x.amount)}</span><button type="button" class="del" onclick="removeSaving(${x.i})">삭제</button></span></li>`).join("")
+    : `<li class="muted">아직 기록이 없어요.</li>`;
   $("monthlyNeed").textContent = `월 ${won(monthlyNeed)} 저축 필요`;
 
   const resisted = data.resisted || [];
@@ -200,6 +217,33 @@ function renderHome() {
 /* ---------- 충동구매 추가 / 삭제 ---------- */
 /* 같은 localStorage "data"의 impulse 목록만 바꿔요. 저장하면 supabase.js가 DB에도 자동으로 올려줘요. */
 function saveData(data) { localStorage.setItem("data", JSON.stringify(data)); }
+
+/* ---------- 저축 추가 / 삭제 ---------- */
+/* goal.saved(현재 저축액)에 더하거나 빼고, 내역은 data.savings에 남겨요. */
+$("savForm").onsubmit = (e) => {
+  e.preventDefault();
+  const data = load("data", null);
+  if (!data || !data.goal) { alert("먼저 목표를 설정해 주세요. (마이 페이지)"); return; }
+  const amount = Math.round(Number($("savAmount").value));
+  if (!(amount > 0)) return;
+  data.savings = data.savings || [];
+  data.savings.push({ memo: $("savMemo").value.trim(), amount, date: todayStr() });
+  data.goal.saved = (Number(data.goal.saved) || 0) + amount;
+  saveData(data);
+  e.target.reset();
+  renderHome();
+};
+
+function removeSaving(i) {
+  const data = load("data", null);
+  if (!data || !data.goal || !data.savings || !data.savings[i]) return;
+  const x = data.savings[i];
+  if (!confirm(`"${x.memo || "저축"}" ${won(x.amount)} 기록을 삭제할까요? 현재 저축액에서도 빠져요.`)) return;
+  data.savings.splice(i, 1);
+  data.goal.saved = Math.max((Number(data.goal.saved) || 0) - x.amount, 0);
+  saveData(data);
+  renderHome();
+}
 
 $("impForm").onsubmit = (e) => {
   e.preventDefault();
