@@ -150,35 +150,72 @@ ul.list li { border-color: var(--p-line); }
 }
 .dropdown a, .dropdown button { border-radius: 12px; }
 
-/* ----- 하단 이동바 ----- */
-.bottom-bar, nav#tabbar {
-  background: rgba(255, 255, 255, 0.92);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border-top: 1px solid var(--p-line);
-  box-shadow: 0 -6px 20px rgba(76, 175, 125, 0.08);
+/* ----- 하단 이동바: 애플 스타일 떠 있는 반투명 알약 ----- */
+/* 두 가지 구조를 모두 지원해요: .bottom-bar(링크가 바로 안에) / nav#tabbar > .inner */
+.bottom-bar,
+nav#tabbar .inner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  width: calc(100% - 32px);
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.62);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  box-shadow: 0 8px 32px rgba(40, 110, 75, 0.18), 0 0 0 0.5px rgba(76, 175, 125, 0.18);
 }
-.bottom-bar a {
-  font-size: 14px;
-  padding: 15px 4px;
-  position: relative;
-  transition: color 0.15s, background 0.15s;
-}
-.bottom-bar a.active, .bottom-bar a:hover {
+
+/* nav#tabbar 바깥 틀은 투명하게 두고, 안쪽 .inner만 알약으로 보이게 해요 */
+nav#tabbar {
   background: transparent;
+  border: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  pointer-events: none;
+}
+nav#tabbar .inner { pointer-events: auto; position: fixed; }
+
+.bottom-bar a,
+nav#tabbar button,
+nav#tabbar a {
+  flex: 1;
+  padding: 11px 4px;
+  border-radius: 999px;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+  color: var(--p-muted);
+  background: transparent;
+  transition: color 0.2s, background 0.2s;
+}
+
+/* 지금 보고 있는 칸: 알약 안에 또 하나의 알약 */
+.bottom-bar a.active,
+nav#tabbar button.active,
+nav#tabbar a.active {
+  background: rgba(76, 175, 125, 0.16);
+  color: var(--p-green-dark);
+  font-weight: 700;
+}
+.bottom-bar a:hover:not(.active),
+nav#tabbar button:hover:not(.active),
+nav#tabbar a:hover:not(.active) {
+  background: rgba(76, 175, 125, 0.08);
   color: var(--p-green);
 }
-/* 지금 보고 있는 칸 위에 초록 막대 */
-.bottom-bar a.active::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 28%; right: 28%;
-  height: 3px;
-  border-radius: 0 0 3px 3px;
-  background: var(--p-green);
-}
-nav#tabbar button { transition: color 0.15s; }
-nav#tabbar button.active { color: var(--p-green); }
+.bottom-bar a.active::before { content: none; }
+
+/* 떠 있는 바 때문에 채팅 입력창이 가려지지 않게 위로 올려요 */
+#chatform { bottom: 92px; }
 
 /* ----- 채팅 말풍선 ----- */
 .msg { box-shadow: var(--p-shadow-sm); }
