@@ -241,7 +241,7 @@ function goTab(tab) {
   if (tab === "chat" && !$("chatlog").children.length) aiSay("구매를 고민 중인 물건과 가격을 알려주세요. 감정이 아니라 수치로 판단하겠습니다.");
   window.scrollTo(0, 0);
 }
-document.querySelectorAll("#tabbar button").forEach((b) => b.onclick = () => b.dataset.tab === "my" ? (location.href = "mypage.html") : b.dataset.tab === "group" ? (location.href = "group.html") : goTab(b.dataset.tab));
+document.querySelectorAll("#tabbar button").forEach((b) => b.onclick = () => b.dataset.tab === "home" ? (location.href = "home.html") : b.dataset.tab === "my" ? (location.href = "mypage.html") : b.dataset.tab === "group" ? (location.href = "group.html") : goTab(b.dataset.tab));
 
 /* ---------- AI 채팅 (규칙 기반 데모. 실제 LLM API로 교체 가능) ---------- */
 function parsePrice(t) {
@@ -316,6 +316,7 @@ if (!data) { data = defaultData(); persist(); }
 // 주소 해시(#group, #chat)로 시작 탭 지정 (다른 페이지의 하단바에서 이동용)
 const startTab = location.hash.slice(1);
 if (startTab === "group") location.replace("group.html");
+if (startTab === "home") location.replace("home.html");
 goTab(["home", "group", "chat"].includes(startTab) ? startTab : "home");
 </script>
 <script src="ai-chat-api.js"></script>
