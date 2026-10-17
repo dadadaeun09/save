@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>저축 앱</title>
+<style>
+  :root {
+    --bg: #f3f5f9; --card: #fff; --text: #1c2230; --muted: #6b7487; --line: #e3e7ef;
+    --primary: #3b6cff; --good: #1a9b5f; --bad: #d9443b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #12151c; --card: #1c212c; --text: #e8ecf5; --muted: #9aa3b6; --line: #2c3342; --primary: #6c92ff; --good: #3fcf8e; --bad: #ff7a70; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif; }
+  [hidden] { display: none !important; }
+  button { font: inherit; cursor: pointer; }
+  input, select { font: inherit; color: inherit; background: var(--card); padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 8px; width: 100%; }
+  input:focus { outline: 2px solid color-mix(in srgb, var(--primary) 40%, transparent); border-color: var(--primary); }
+  .btn { padding: 11px; border: 0; border-radius: 8px; background: var(--primary); color: #fff; width: 100%; }
+    .muted { color: var(--muted); font-size: 13px; }
+
+  /* ---------- 앱 셸 ---------- */
+  #app { max-width: 520px; margin: 0 auto; min-height: 100vh; padding: 16px 16px 90px; }
+  .page > h2 { margin: 4px 0 14px; font-size: 20px; }
+  .card { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+  .card h3 { margin: 0 0 10px; font-size: 14px; color: var(--muted); font-weight: 600; }
+  .big { font-size: 26px; font-weight: 700; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid2 .card { margin-bottom: 0; }
+  .grid2 .big { font-size: 20px; white-space: nowrap; }
+  .bar { height: 12px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 10px 0 6px; }
+  .bar > i { display: block; height: 100%; background: var(--primary); border-radius: 99px; transition: width .5s; }
+  .good { color: var(--good); } .bad { color: var(--bad); }
+  ul.list { list-style: none; margin: 0; padding: 0; }
+  ul.list li { display: flex; justify-content: space-between; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  ul.list li:first-child { border-top: 0; }
+
+  /* ---------- 하단 네비게이션 ---------- */
+  nav#tabbar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card);
+    border-top: 1px solid var(--line); display: flex; justify-content: center;
+    padding-bottom: env(safe-area-inset-bottom); }
+  nav#tabbar .inner { display: flex; width: 100%; max-width: 520px; }
+  nav#tabbar button { flex: 1; background: none; border: 0; padding: 9px 0 8px; color: var(--muted);
+    display: grid; gap: 2px; justify-items: center; font-size: 11px; }
+  nav#tabbar button span { font-size: 21px; line-height: 1; }
+  nav#tabbar button.active { color: var(--primary); font-weight: 700; }
+
+  /* ---------- 그룹 ---------- */
+  .member { display: grid; gap: 4px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .member:first-child { border-top: 0; }
+  .member.me .name { color: var(--primary); font-weight: 700; }
+
+  /* ---------- 채팅 ---------- */
+  #chatlog { display: grid; gap: 8px; margin-bottom: 12px; }
+  .msg { max-width: 85%; padding: 10px 13px; border-radius: 14px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+  .msg.user { justify-self: end; background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.ai { justify-self: start; background: var(--card); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+  .choices { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .choices button { padding: 6px 10px; border-radius: 99px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 13px; }
+  #chatform { position: sticky; bottom: 74px; display: flex; gap: 8px; background: var(--bg); padding: 8px 0; }
+  #chatform button { width: auto; padding: 0 18px; }
+</style>
+</head>
+<body>
+
+<!-- ================= 메인 앱 ================= -->
+<div id="app">
+
+  <!-- 홈 -->
+  <section class="page" id="page-home">
+    <h2 id="home-title">홈</h2>
+
+    <div class="card">
+      <h3>저축 목표</h3>
+      <div class="row"><b id="goal-name"></b><span class="muted" id="goal-deadline"></span></div>
+      <div class="big" id="goal-target"></div>
+      <div class="bar"><i id="goal-bar"></i></div>
+      <div class="row"><span id="goal-pct" class="muted"></span><span class="muted" id="goal-remain"></span></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>현재 저축액</h3>
+        <div class="big" id="saved-now"></div>
+        <div class="muted" id="monthly-need"></div>
+      </div>
+      <div class="card">
+        <h3>아낀 금액</h3>
+        <div class="big good" id="resisted-total"></div>
+        <div class="muted" id="resisted-count"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h3>이번 달 충동구매 현황</h3>
+      <div class="row"><div class="big bad" id="impulse-total"></div><span class="muted" id="impulse-count"></span></div>
+      <div class="muted" id="impulse-effect"></div>
+      <ul class="list" id="impulse-list"></ul>
+    </div>
+  </section>
+
+  <!-- 그룹 -->
+  <section class="page" id="page-group" hidden>
+    <h2>그룹</h2>
+    <div class="card">
+      <h3>목표가 비슷한 사람들 · 여행 자금 모으기</h3>
+      <div id="group-members"></div>
+    </div>
+    <p class="muted">※ 현재는 예시 데이터입니다. 금액 대신 달성률로 비교해 소득 차이 부담을 줄입니다.</p>
+  </section>
+
+  <!-- 마이 -->
+  <section class="page" id="page-my" hidden>
+    <h2>마이 페이지</h2>
+    <div class="card">
+      <h3>저축 목표 설정</h3>
+      <form id="goal-form" class="stack" style="display:grid;gap:12px">
+        <label class="muted">목표 이름<input name="name" required /></label>
+        <label class="muted">목표 금액 (원)<input name="target" type="number" min="1" required /></label>
+        <label class="muted">현재 저축액 (원)<input name="saved" type="number" min="0" required /></label>
+        <label class="muted">기한<input name="deadline" type="date" required /></label>
+        <label class="muted">월 소득 (원)<input name="income" type="number" min="1" required /></label>
+        <button class="btn" type="submit">저장</button>
+        <span class="muted" id="goal-saved-msg" hidden>저장되었습니다.</span>
+      </form>
+    </div>
+  </section>
+
+  <!-- AI 채팅 -->
+  <section class="page" id="page-chat" hidden>
+    <h2>AI 구매 상담</h2>
+    <p class="muted">사려는 물건과 가격을 입력하세요. 예: "무선 이어폰 25만원 살까?"</p>
+    <div id="chatlog"></div>
+    <form id="chatform">
+      <input id="chatinput" placeholder="무엇을 사고 싶으세요?" autocomplete="off" required />
+      <button class="btn" type="submit">전송</button>
+    </form>
+  </section>
+
+  <nav id="tabbar"><div class="inner">
+    <button data-tab="home" class="active"><span>🏠</span>홈</button>
+    <button data-tab="group"><span>👥</span>그룹</button>
+    <button data-tab="my"><span>👤</span>마이</button>
+    <button data-tab="chat"><span>💬</span>AI 채팅</button>
+  </div></nav>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const won = (n) => Math.round(n).toLocaleString("ko-KR") + "원";
+const todayStr = () => new Date().toISOString().slice(0, 10);
+const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+
+/* ---------- 사용자 데이터 (처음엔 보기용 샘플로 채움) ---------- */
+function defaultData() {
+  return {
+    goal: { name: "유럽 여행", target: 3000000, saved: 1200000, deadline: addDays(180), income: 2500000 },
+    resisted: [
+      { item: "게임 아이템", amount: 55000, date: todayStr() },
+      { item: "배달 음식", amount: 32000, date: todayStr() },
+      { item: "무선 키보드", amount: 100000, date: todayStr() },
+    ],
+    impulse: [
+      { item: "한정판 굿즈", amount: 48000, date: todayStr() },
+      { item: "새벽 쇼핑 티셔츠", amount: 29000, date: todayStr() },
+      { item: "배달 야식", amount: 21000, date: todayStr() },
+    ],
+    history: [],
+  };
+}
+const persist = () => save("data", data);
+
+/* ---------- 계산 ---------- */
+function monthsLeft() {
+  const days = (new Date(data.goal.deadline) - new Date(todayStr())) / 86400000;
+  return Math.max(days / 30, 0.1);
+}
+const remaining = () => Math.max(data.goal.target - data.goal.saved, 0);
+const monthlyNeed = () => remaining() / monthsLeft();
+const thisMonth = (d) => d.date.slice(0, 7) === todayStr().slice(0, 7);
+
+/* ---------- 렌더링 ---------- */
+function renderHome() {
+  const g = data.goal;
+  const pct = Math.min(g.saved / g.target * 100, 100);
+  $("home-title").textContent = "나의 저축 현황";
+  $("goal-name").textContent = g.name;
+  $("goal-deadline").textContent = `기한 ${g.deadline}`;
+  $("goal-target").textContent = won(g.target);
+  $("goal-bar").style.width = pct + "%";
+  $("goal-pct").textContent = `${pct.toFixed(1)}% 달성`;
+  $("goal-remain").textContent = `남은 금액 ${won(remaining())}`;
+  $("saved-now").textContent = won(g.saved);
+  $("monthly-need").textContent = `월 ${won(monthlyNeed())} 저축 필요`;
+  const rTotal = data.resisted.reduce((s, x) => s + x.amount, 0);
+  $("resisted-total").textContent = won(rTotal);
+  $("resisted-count").textContent = `구매를 참은 ${data.resisted.length}건`;
+  const imp = data.impulse.filter(thisMonth);
+  const iTotal = imp.reduce((s, x) => s + x.amount, 0);
+  $("impulse-total").textContent = won(iTotal);
+  $("impulse-count").textContent = `${imp.length}건`;
+  const delay = iTotal / Math.max(monthlyNeed() / 30, 1);
+  $("impulse-effect").textContent = iTotal ? `이 돈을 저축했다면 목표 달성이 약 ${Math.round(delay)}일 빨랐습니다.` : "이번 달 충동구매가 없습니다.";
+  $("impulse-list").innerHTML = imp.slice().reverse().map((x) => `<li><span>${esc(x.item)}</span><span class="bad">-${won(x.amount)}</span></li>`).join("");
+}
+
+function renderGroup() {
+  const g = data.goal;
+  const me = Math.min(g.saved / g.target * 100, 100);
+  const members = [
+    { name: "나", pct: me, me: true },
+    { name: "저축왕 민지", pct: 78 }, { name: "차근차근 준호", pct: 61 },
+    { name: "여행가고파", pct: 44 }, { name: "아끼는중", pct: 23 },
+  ].sort((a, b) => b.pct - a.pct);
+  $("group-members").innerHTML = members.map((m, i) => `
+    <div class="member ${m.me ? "me" : ""}">
+      <div class="row"><span class="name">${i + 1}. ${esc(m.name)}</span><span class="muted">${m.pct.toFixed(0)}%</span></div>
+      <div class="bar" style="margin:0"><i style="width:${m.pct}%"></i></div>
+    </div>`).join("");
+}
+
+function renderMy() {
+  const f = $("goal-form"), g = data.goal;
+  for (const k of ["name", "target", "saved", "deadline", "income"]) f.elements[k].value = g[k];
+}
+$("goal-form").onsubmit = (e) => {
+  e.preventDefault();
+  const f = e.target.elements;
+  data.goal = { name: f.name.value, target: +f.target.value, saved: +f.saved.value, deadline: f.deadline.value, income: +f.income.value };
+  persist(); renderHome();
+  $("goal-saved-msg").hidden = false; setTimeout(() => $("goal-saved-msg").hidden = true, 2000);
+};
+
+function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+/* ---------- 탭 네비게이션 ---------- */
+function goTab(tab) {
+  document.querySelectorAll(".page").forEach((p) => p.hidden = p.id !== "page-" + tab);
+  document.querySelectorAll("#tabbar button").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+  if (tab === "home") renderHome();
+  if (tab === "group") renderGroup();
+  if (tab === "my") renderMy();
+  if (tab === "chat" && !$("chatlog").children.length) aiSay("구매를 고민 중인 물건과 가격을 알려주세요. 감정이 아니라 수치로 판단하겠습니다.");
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll("#tabbar button").forEach((b) => b.onclick = () => goTab(b.dataset.tab));
+
+/* ---------- AI 채팅 (규칙 기반 데모. 실제 LLM API로 교체 가능) ---------- */
+function parsePrice(t) {
+  let m = t.match(/(\d+(?:\.\d+)?)\s*만\s*원?/); if (m) return +m[1] * 10000;
+  m = t.match(/(\d[\d,]*)\s*원/); if (m) return +m[1].replace(/,/g, "");
+  m = t.match(/(\d{4,})/); if (m) return +m[1];
+  return null;
+}
+function itemName(t) {
+  return t.replace(/(\d+(?:\.\d+)?)\s*만\s*원?/g, "").replace(/\d[\d,]*\s*원?/g, "")
+    .replace(/(살까|사고 싶|사려|구매|할까|하고 싶|사도 될까)\S*/g, "").replace(/[?!.]/g, "").trim() || "물건";
+}
+function addMsg(cls, html) {
+  const d = document.createElement("div"); d.className = "msg " + cls; d.innerHTML = html;
+  $("chatlog").appendChild(d); d.scrollIntoView({ block: "end" }); return d;
+}
+const aiSay = (t) => addMsg("ai", esc(t));
+
+$("chatform").onsubmit = (e) => {
+  e.preventDefault();
+  const text = $("chatinput").value.trim(); $("chatinput").value = "";
+  addMsg("user", esc(text));
+  const price = parsePrice(text), name = itemName(text);
+  if (!price) return aiSay("가격을 알 수 없습니다. '25만원'처럼 금액을 함께 입력해 주세요.");
+
+  const hourly = data.goal.income / 209;
+  const hours = price / hourly;
+  const perDay = Math.max(monthlyNeed() / 30, 1);
+  const delay = Math.round(price / perDay);
+  const pctOfIncome = price / data.goal.income * 100;
+
+  let out = `[${name}] ${won(price)}\n\n`
+    + `• 근무 시간 환산: 약 ${hours.toFixed(1)}시간 (시급 ${won(hourly)} 기준)\n`
+    + `• 월 소득 대비: ${pctOfIncome.toFixed(1)}%\n`
+    + `• 목표 달성 지연: 약 ${delay}일 (목표: ${data.goal.name})\n`;
+  const prev = data.history.filter((h) => h.name.includes(name) || name.includes(h.name));
+  if (prev.length) {
+    const last = prev[prev.length - 1];
+    out += `\n⚠ 과거 기록: 이미 "${last.name}" 관련 구매를 상담한 적이 있습니다 (${last.date}, 결과: ${last.decision}). 같은 결정을 반복하는 것은 아닌지 확인하세요.\n`;
+  }
+  out += `\n확인할 질문:\n1) 지난 3개월 동안 비슷한 필요가 몇 번 있었습니까?\n2) 이미 보유한 대체품이 있습니까?\n3) 중고·대여 등 더 저렴한 대안은 검토했습니까?\n\n결론: 목표 달성을 ${delay}일 늦출 만큼의 필요가 입증되지 않았다면 구매를 권장하지 않습니다.`;
+
+  const el = addMsg("ai", esc(out));
+  const box = document.createElement("div"); box.className = "choices";
+  const opts = [["구매 안 함", "resisted"], ["보류", "hold"], ["그래도 구매", "impulse"]];
+  for (const [label, kind] of opts) {
+    const b = document.createElement("button"); b.textContent = label;
+    b.onclick = () => {
+      box.remove();
+      data.history.push({ name, amount: price, decision: label, date: todayStr() });
+      if (kind === "resisted") {
+        data.resisted.push({ item: name, amount: price, date: todayStr() });
+        aiSay(`합리적인 판단입니다. ${won(price)}을 지켰습니다. 누적 아낀 금액에 반영했습니다.`);
+      } else if (kind === "hold") {
+        aiSay("보류로 기록했습니다. 일정 기간 뒤에 다시 필요한지 확인하겠습니다. (알림 기능은 추후 구현)");
+      } else {
+        data.impulse.push({ item: name, amount: price, date: todayStr() });
+        aiSay(`설득에 실패했습니다. 이 구매는 충동구매로 기록되어 월말 정산에 표시됩니다.`);
+      }
+      persist();
+    };
+    box.appendChild(b);
+  }
+  el.appendChild(box);
+};
+
+/* ---------- 시작 ---------- */
+let data = load("data", null);
+if (!data) { data = defaultData(); persist(); }
+goTab("home");
+</script>
+</body>
+</html>
