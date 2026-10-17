@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>돈모으기운동 - 그룹</title>
+<style>
+  :root {
+    --green: #4caf7d; --green-dark: #3d9468; --pastel: #6fb98f; --pastel-text: #5a9e78;
+    --pastel-light: #cfe9da; --pastel-bg: #f1f9f4; --white: #fff; --gray: #8a9a91; --red: #e57373;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--white); color: var(--pastel-text);
+    font-family: system-ui, -apple-system, "Malgun Gothic", sans-serif; }
+  a { color: var(--green); text-decoration: none; }
+  h2, h3 { color: var(--green); margin: 0 0 10px; }
+  h3 { font-size: 16px; }
+
+  /* 상단바 + 석 삼 자 메뉴 */
+  .topbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; background: var(--white); border-bottom: 2px solid var(--pastel-light); }
+  .logo { font-size: 20px; font-weight: 700; color: var(--green); }
+  .menu-button { width: 40px; height: 40px; display: flex; flex-direction: column; justify-content: center;
+    align-items: center; gap: 5px; padding: 0; border: 0; border-radius: 10px; background: none; cursor: pointer; }
+  .menu-button span { display: block; width: 22px; height: 3px; border-radius: 2px; background: var(--green); }
+  .menu-button:hover { background: var(--pastel-bg); }
+  .dropdown { display: none; position: absolute; top: 100%; right: 16px; min-width: 160px; padding: 8px;
+    background: var(--white); border: 2px solid var(--pastel-light); border-radius: 14px; }
+  .dropdown.open { display: block; }
+  .dropdown a, .dropdown button { display: block; width: 100%; padding: 10px 12px; border: 0; border-radius: 10px;
+    background: none; text-align: left; font: inherit; color: var(--pastel-text); cursor: pointer; }
+  .dropdown a.active, .dropdown a:hover, .dropdown button:hover { background: var(--pastel-bg); color: var(--green); font-weight: 700; }
+  .dropdown hr { border: 0; border-top: 1px dashed var(--pastel-light); margin: 6px 0; }
+
+  /* 하단 이동바 */
+  .bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex;
+    background: var(--white); border-top: 2px solid var(--pastel-light); padding-bottom: env(safe-area-inset-bottom); }
+  .bottom-bar a { flex: 1; padding: 16px 4px; text-align: center; color: var(--pastel-text); white-space: nowrap; }
+  .bottom-bar a.active, .bottom-bar a:hover { background: var(--pastel-bg); color: var(--green); font-weight: 700; }
+
+  /* 본문 */
+  main { max-width: 720px; margin: 0 auto; padding: 22px 16px 100px; }
+  .card { border: 2px solid var(--pastel-light); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+  .card.soft { background: var(--pastel-bg); border-color: transparent; }
+  .muted { color: var(--gray); font-size: 14px; }
+  .big { font-size: 26px; font-weight: 700; color: var(--green); }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .progress { height: 14px; background: var(--pastel-light); border-radius: 999px; overflow: hidden; margin: 10px 0; }
+  .progress i { display: block; height: 100%; width: 0; background: var(--green); transition: width .5s; }
+  .btn { display: inline-block; padding: 10px 18px; border: 0; border-radius: 10px; background: var(--green); color: #fff;
+    font: inherit; cursor: pointer; }
+  .btn:hover { background: var(--green-dark); }
+  .btn.ghost { background: none; border: 2px solid var(--pastel-light); color: var(--pastel-text); }
+  .btn.ghost:hover { background: var(--pastel-bg); }
+  .btn.danger { background: none; border: 2px solid var(--red); color: var(--red); }
+  .btn.danger:hover { background: var(--red); color: #fff; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  input[type=text] { width: 100%; padding: 10px 12px; border: 2px solid var(--pastel-light); border-radius: 10px;
+    font: inherit; color: var(--pastel-text); margin: 6px 0 10px; }
+  input[type=text]:focus { outline: none; border-color: var(--green); }
+  .code { display: inline-block; padding: 2px 8px; border-radius: 8px; background: var(--white); color: var(--green);
+    font-weight: 700; letter-spacing: 1px; }
+
+  /* 멤버 목록 */
+  .member { padding: 14px 0; border-top: 1px dashed var(--pastel-light); }
+  .member:first-child { border-top: 0; }
+  .uid { font-weight: 700; color: var(--green); }
+  .tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 12px;
+    background: var(--pastel-light); color: var(--green-dark); font-weight: 400; }
+  .member .progress { height: 10px; margin: 8px 0 4px; }
+  .empty { color: var(--gray); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="home.html">돈모으기운동</a>
+  <button class="menu-button" id="menuButton" aria-label="메뉴 열기"><span></span><span></span><span></span></button>
+  <div class="dropdown" id="dropdown"></div>
+</header>
+
+<main>
+  <h2 id="welcome">그룹</h2>
+  <div id="content"></div>
+</main>
+
+<nav class="bottom-bar" id="bottomBar"></nav>
+
+<script>
+/* 데이터 키
+   "data"   : 홈과 동일. { goal:{name,target,saved,deadline,income}, ... }
+   "groups" : [{ id, name, code, members:[{ uid, name, shared:null | {goal,pct,saved,target,at} }] }] */
+const $ = (id) => document.getElementById(id);
+const won = (n) => Math.round(n).toLocaleString("ko-KR") + "원";
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* ---------- 로그인 확인 ---------- */
+function getCurrentUser() {
+  try {
+    const t = sessionStorage.getItem("currentUser") || localStorage.getItem("currentUser");
+    return t ? JSON.parse(t) : null;
+  } catch { return null; }
+}
+function logout() {
+  try { localStorage.removeItem("currentUser"); sessionStorage.removeItem("currentUser"); } catch {}
+  location.href = "login.html";
+}
+const user = getCurrentUser();
+if (!user) location.replace("login.html");
+/* 유저 아이디: 로그인 정보에 있는 아이디 계열 값을 우선 사용 */
+const myId = user ? String(user.id ?? user.userId ?? user.username ?? user.email ?? user.name) : "";
+
+/* ---------- 메뉴 ---------- */
+const pages = [
+  { name: "홈", href: "home.html" },
+  { name: "그룹", href: "group.html", active: true },
+  { name: "마이", href: "index.html#my" },
+  { name: "AI 채팅", href: "index.html#chat" },
+];
+const links = pages.map((p) => `<a href="${p.href}" class="${p.active ? "active" : ""}">${p.name}</a>`).join("");
+$("bottomBar").innerHTML = links;
+$("dropdown").innerHTML = links + `<hr><button type="button" onclick="logout()">로그아웃</button>`;
+$("menuButton").onclick = (e) => { e.stopPropagation(); $("dropdown").classList.toggle("open"); };
+document.addEventListener("click", () => $("dropdown").classList.remove("open"));
+
+/* ---------- 그룹 데이터 ---------- */
+const getGroups = () => load("groups", []);
+const myGroup = (groups) => groups.find((g) => g.members.some((m) => m.uid === myId));
+const newCode = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+
+function createGroup() {
+  const name = $("newName").value.trim();
+  if (!name) return alert("그룹 이름을 입력해 주세요.");
+  const groups = getGroups();
+  groups.push({ id: Date.now(), name, code: newCode(), members: [{ uid: myId, name: user.name, shared: null }] });
+  save("groups", groups); render();
+}
+function joinGroup() {
+  const code = $("joinCode").value.trim().toUpperCase();
+  const groups = getGroups();
+  const g = groups.find((x) => x.code === code);
+  if (!g) return alert("해당 초대 코드의 그룹이 없어요.");
+  g.members.push({ uid: myId, name: user.name, shared: null });
+  save("groups", groups); render();
+}
+function leaveGroup() {
+  if (!confirm("정말 그룹을 나갈까요?")) return;
+  let groups = getGroups();
+  const g = myGroup(groups);
+  if (g) g.members = g.members.filter((m) => m.uid !== myId);
+  groups = groups.filter((x) => x.members.length); // 멤버가 없으면 그룹도 삭제
+  save("groups", groups); render();
+}
+function shareProgress() {
+  const data = load("data", null);
+  if (!data || !data.goal) return alert("먼저 저축 목표를 설정해 주세요. (마이 탭)");
+  const g = data.goal;
+  const groups = getGroups();
+  const me = myGroup(groups).members.find((m) => m.uid === myId);
+  me.shared = { goal: g.name, saved: g.saved, target: g.target,
+    pct: Math.min((g.saved / g.target) * 100, 100), at: new Date().toLocaleString("ko-KR") };
+  save("groups", groups); render();
+}
+function stopSharing() {
+  const groups = getGroups();
+  myGroup(groups).members.find((m) => m.uid === myId).shared = null;
+  save("groups", groups); render();
+}
+function copyCode(code) {
+  navigator.clipboard?.writeText(code).then(() => alert("초대 코드를 복사했어요."), () => prompt("초대 코드", code));
+}
+
+/* ---------- 화면 ---------- */
+function render() {
+  const g = myGroup(getGroups());
+
+  // 그룹이 없을 때: 만들기 / 참여하기
+  if (!g) {
+    $("welcome").textContent = "그룹";
+    $("content").innerHTML = `
+      <section class="card soft"><p class="muted">아직 참여한 그룹이 없어요. 새로 만들거나 초대 코드로 들어와 보세요.</p></section>
+      <section class="card">
+        <h3>그룹 만들기</h3>
+        <input type="text" id="newName" placeholder="그룹 이름" maxlength="20" />
+        <button class="btn" onclick="createGroup()">만들기</button>
+      </section>
+      <section class="card">
+        <h3>초대 코드로 참여</h3>
+        <input type="text" id="joinCode" placeholder="초대 코드" maxlength="10" />
+        <button class="btn" onclick="joinGroup()">참여하기</button>
+      </section>`;
+    return;
+  }
+
+  const me = g.members.find((m) => m.uid === myId);
+  $("welcome").textContent = g.name;
+
+  const members = g.members.map((m) => {
+    const s = m.shared;
+    const isMe = m.uid === myId;
+    return `<div class="member">
+      <div class="row">
+        <span><span class="uid">@${esc(m.uid)}</span>${isMe ? '<span class="tag">나</span>' : ""}
+          <span class="muted"> ${esc(m.name)}</span></span>
+        ${s ? `<b>${s.pct.toFixed(1)}%</b>` : '<span class="muted">미공유</span>'}
+      </div>
+      ${s ? `
+        <div class="progress"><i style="width:${s.pct}%"></i></div>
+        <div class="row"><span class="muted">${esc(s.goal)} · ${won(s.saved)} / ${won(s.target)}</span>
+          <span class="muted">${esc(s.at)}</span></div>`
+        : '<div class="empty">아직 달성현황을 공유하지 않았어요.</div>'}
+    </div>`;
+  }).join("");
+
+  $("content").innerHTML = `
+    <section class="card soft">
+      <div class="row"><span class="muted">멤버 ${g.members.length}명</span>
+        <span class="muted">초대 코드 <span class="code">${esc(g.code)}</span></span></div>
+      <div class="actions">
+        <button class="btn ghost" onclick="copyCode('${esc(g.code)}')">코드 복사</button>
+        <button class="btn danger" onclick="leaveGroup()">그룹 나가기</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>내 달성현황 공유</h3>
+      <p class="muted">홈에 표시되는 저축 목표 달성률을 그룹 멤버에게 보여줘요.</p>
+      <div class="actions">
+        <button class="btn" onclick="shareProgress()">${me.shared ? "현황 새로 공유" : "달성현황 공유하기"}</button>
+        ${me.shared ? '<button class="btn ghost" onclick="stopSharing()">공유 중지</button>' : ""}
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>멤버 달성현황</h3>
+      ${members}
+    </section>`;
+}
+if (user) render();
+</script>
+</body>
+</html>
