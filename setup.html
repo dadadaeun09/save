@@ -63,8 +63,9 @@
 
     <div class="card">
       <h2>소득 수준</h2>
-      <label for="income">한 달 소득 (원) <span class="req">*</span></label>
+      <label for="income">한 달 소득 (원) <span class="opt">(선택)</span></label>
       <input id="income" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 2500000" />
+      <p class="muted" style="margin-top:6px">비워 두어도 괜찮아요. AI 채팅에서 구매 금액을 근무 시간으로 바꿔 볼 때 쓰이니, 나중에 마이 페이지에서 입력할 수 있어요.</p>
     </div>
 
     <div class="card">
@@ -147,7 +148,7 @@ $("setupForm").onsubmit = (e) => {
   const income = Math.round(Number($("income").value));
   if (!name) { err.textContent = "저축 목표를 입력해 주세요."; return; }
   if (!(target > 0)) { err.textContent = "목표 금액을 1원 이상으로 입력해 주세요."; return; }
-  if (!(income > 0)) { err.textContent = "한 달 소득을 1원 이상으로 입력해 주세요."; return; }
+  if ($("income").value.trim() !== "" && !(income > 0)) { err.textContent = "한 달 소득은 1원 이상으로 입력하거나 비워 주세요."; return; }
   if (!addFixedFromInputs()) return;
 
   const data = load("data", null) || { resisted: [], impulse: [], held: [], history: [] };

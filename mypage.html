@@ -143,10 +143,10 @@
         <span>저축 목표 설정<span class="sub" id="sub-goal"></span></span><span class="chev">›</span>
       </button>
       <button class="item" data-go="income">
-        <span>소득 수준 설정<span class="sub" id="sub-income"></span></span><span class="chev">›</span>
+        <span>소득 수준 설정 <span class="opt">(선택)</span><span class="sub" id="sub-income"></span></span><span class="chev">›</span>
       </button>
       <button class="item" data-go="fixed">
-        <span>매달 고정 지출<span class="sub" id="sub-fixed"></span></span><span class="chev">›</span>
+        <span>매달 고정 지출 <span class="opt">(선택)</span><span class="sub" id="sub-fixed"></span></span><span class="chev">›</span>
       </button>
       <button class="item" data-go="held">
         <span>구매 보류 품목<span class="sub" id="sub-held"></span></span>
@@ -187,7 +187,7 @@
     <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>소득 수준 설정</h2></div>
     <div class="card">
       <form class="stack" id="income-form" novalidate>
-        <label>이번 달 소득 (원) <span class="req">*</span>
+        <label>이번 달 소득 (원) <span class="opt">(선택)</span>
           <input name="income" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 2500000" />
         </label>
         <p class="muted" style="margin:0">현재 월에 버는 금액을 입력하세요. AI가 구매 금액을 근무 시간으로 환산할 때 사용합니다.</p>
@@ -199,14 +199,14 @@
 
   <!-- 매달 고정 지출 -->
   <section id="view-fixed" hidden>
-    <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>매달 고정 지출</h2></div>
-    <p class="muted" style="margin-top:0">월세, 생활비, 통신비, 보험료처럼 매달 꼭 나가는 돈을 적어 두세요.</p>
+    <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>매달 고정 지출 <span class="opt">(선택)</span></h2></div>
+    <p class="muted" style="margin-top:0">월세, 생활비, 통신비, 보험료처럼 매달 꼭 나가는 돈을 적어 두세요. 입력하지 않아도 괜찮고, 항목을 추가할 때만 이름과 금액을 함께 적어 주세요.</p>
     <div class="card">
       <form class="stack" id="fixed-form" novalidate>
-        <label>항목 <span class="req">*</span>
+        <label>항목
           <input name="name" maxlength="30" placeholder="예: 월세, 식비, 통신비" />
         </label>
-        <label>매달 금액 (원) <span class="req">*</span>
+        <label>매달 금액 (원)
           <input name="amount" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 500000" />
         </label>
         <p class="error" id="fixed-error" hidden></p>
@@ -403,8 +403,9 @@ function fillIncome() { $("income-form").elements.income.value = data.goal.incom
 $("income-form").onsubmit = (e) => {
   e.preventDefault();
   const v = Number(e.target.elements.income.value), err = $("income-error");
-  if (!(v >= 1)) { err.textContent = "소득을 1원 이상으로 입력해 주세요."; err.hidden = false; return; }
-  data.goal = { ...data.goal, income: Math.round(v) };
+  const empty = e.target.elements.income.value.trim() === "";
+  if (!empty && !(v >= 1)) { err.textContent = "소득은 1원 이상으로 입력하거나 비워 주세요."; err.hidden = false; return; }
+  data.goal = { ...data.goal, income: empty ? 0 : Math.round(v) };
   persist(); toast("소득 수준이 저장되었습니다"); location.hash = "";
   if (!location.hash) route();
 };

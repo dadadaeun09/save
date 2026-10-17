@@ -192,7 +192,7 @@ function renderHome() {
   $("savingsList").innerHTML = sav.length
     ? sav.map((x) => `<li><span>${esc(x.memo || "저축")} <span class="muted">${esc(x.date)}</span></span><span class="right"><span class="good">+${won(x.amount)}</span><button type="button" class="del" onclick="removeSaving(${x.i})">삭제</button></span></li>`).join("")
     : `<li class="muted">아직 기록이 없어요.</li>`;
-  $("monthlyNeed").textContent = g.deadline ? `월 ${won(monthlyNeed)} 저축 필요` : `월 소득의 20%(${won(monthlyNeed)}) 저축 가정`;
+  $("monthlyNeed").textContent = g.deadline ? `월 ${won(monthlyNeed)} 저축 필요` : (Number(g.income) > 0 ? `월 소득의 20%(${won(monthlyNeed)}) 저축 가정` : "기한이나 소득을 입력하면 월 저축액을 계산해 드려요");
 
   const resisted = data.resisted || [];
   $("resistedTotal").textContent = won(resisted.reduce((s, x) => s + x.amount, 0));
