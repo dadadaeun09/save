@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 채팅</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f3f4f8; color: #111827; font-family: "Pretendard", "Malgun Gothic", -apple-system, sans-serif; }
+  .app { max-width: 610px; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 24px; margin: 0 0 16px; }
+  .hint { color: #6b7280; margin: -8px 0 14px; font-size: 15px; }
+  #chat { height: 60vh; min-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+          background: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .bubble { max-width: 80%; padding: 10px 14px; border-radius: 16px; line-height: 1.55; white-space: pre-wrap; }
+  .bubble.user { align-self: flex-end; background: #3b6cf6; color: white; border-bottom-right-radius: 4px; }
+  .bubble.ai { align-self: flex-start; background: #eef0f7; border-bottom-left-radius: 4px; }
+  .bubble.typing { color: #9ca3af; }
+  #result { text-align: center; font-size: 20px; font-weight: 800; min-height: 28px; margin-bottom: 10px; }
+  .input-row { display: flex; gap: 8px; }
+  #input { flex: 1; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 99px; font-size: 16px; outline: none; }
+  #input:focus { border-color: #3b6cf6; }
+  #send { padding: 12px 20px; border: none; border-radius: 99px; background: #3b6cf6; color: white; font-size: 16px; cursor: pointer; }
+  #send:disabled { background: #9db4fa; cursor: default; }
+</style>
+</head>
+<body>
+<main class="app">
+  <h1>AI 채팅</h1>
+  <p class="hint">사고 싶은 물건과 이유를 말하고 AI를 설득해 보세요.</p>
+  <div id="chat"></div>
+  <div id="result"></div>
+  <div class="input-row">
+    <input id="input" placeholder="예: 에어팟 사고 싶어요" autocomplete="off">
+    <button id="send">보내기</button>
+  </div>
+</main>
+<script>
+  const messages = [];
+  const chat = document.getElementById("chat");
+  const input = document.getElementById("input");
+  const sendBtn = document.getElementById("send");
+  const result = document.getElementById("result");
+
+  function addMsg(who, text) {
+    const div = document.createElement("div");
+    div.className = "bubble " + who;
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+  }
+
+  addMsg("ai", "안녕! 뭐가 사고 싶어서 왔어? 물건이랑 가격, 그리고 꼭 사야 하는 이유를 말해봐.");
+
+  async function send() {
+    const text = input.value.trim();
+    if (!text || sendBtn.disabled) return;
+    input.value = "";
+    addMsg("user", text);
+    messages.push({ role: "user", content: text });
+
+    sendBtn.disabled = true;
+    const typing = addMsg("ai typing", "생각 중...");
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      typing.remove();
+      addMsg("ai", data.reply);
+      messages.push({ role: "assistant", content: data.reply });
+
+      if (data.verdict === "승인") result.textContent = "✅ 구매 승인!";
+      else if (data.verdict === "거절") result.textContent = "❌ 구매 거절...";
+      else result.textContent = "";
+    } catch (e) {
+      typing.remove();
+      addMsg("ai", "⚠️ 오류가 났어요. 서버 창의 메시지를 확인하세요.");
+      messages.pop();
+    }
+    sendBtn.disabled = false;
+    input.focus();
+  }
+
+  sendBtn.onclick = send;
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) send(); });
+</script>
+</body>
+</html>
