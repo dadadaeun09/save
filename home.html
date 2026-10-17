@@ -139,6 +139,7 @@ function logout() {
   location.href = "login.html";
 }
 const user = getCurrentUser();
+const hasGoal = (d) => !!(d && d.goal && d.goal.name && Number(d.goal.target) > 0); // 목표 이름과 금액이 있어야 "목표 있음"
 /* 홈은 로그인 없이 볼 수 있어요. 그룹 페이지에 들어갈 때 로그인합니다. */
 
 /* ---------- 메뉴 (하단바 + 석 삼 자 목록) ---------- */
@@ -161,7 +162,7 @@ function renderHome() {
   const data = load("data", null);
 
   // 아직 목표가 없으면 안내만 보여줘요
-  if (!data || !data.goal) {
+  if (!hasGoal(data)) {
     $("goalCard").innerHTML = `<h3>저축 목표</h3><p class="muted">아직 목표가 없어요.</p><a class="btn" href="mypage.html#goal">목표 설정하러 가기</a>`;
     $("savedNow").textContent = won(0); $("monthlyNeed").textContent = "";
     $("savingsList").innerHTML = `<li class="muted">목표를 설정하면 저축을 기록할 수 있어요.</li>`;
@@ -174,13 +175,14 @@ function renderHome() {
   const g = data.goal;
   const pct = Math.min((g.saved / g.target) * 100, 100);
   const remaining = Math.max(g.target - g.saved, 0);
-  const daysLeft = (new Date(g.deadline) - new Date(todayStr())) / 86400000;
-  const monthsLeft = Math.max(daysLeft / 30, 0.1);
-  const monthlyNeed = remaining / monthsLeft;
+  // 기한이 없으면 월 소득의 20%를 저축한다고 가정
+  const monthlyNeed = g.deadline
+    ? remaining / Math.max((new Date(g.deadline) - new Date(todayStr())) / 86400000 / 30, 0.1)
+    : (Number(g.income) || 0) * 0.2;
 
   $("goalCard").innerHTML = `
     <h3>저축 목표</h3>
-    <div class="row"><b>${esc(g.name)}</b><span class="muted">기한 ${esc(g.deadline)}</span></div>
+    <div class="row"><b>${esc(g.name)}</b><span class="muted">${g.deadline ? "기한 " + esc(g.deadline) : "기한 없음"}</span></div>
     <div class="big">${won(g.target)}</div>
     <div class="progress"><i style="width:${pct}%"></i></div>
     <div class="row"><span class="muted">${pct.toFixed(1)}% 달성</span><span class="muted">남은 금액 ${won(remaining)}</span></div>`;
@@ -190,7 +192,7 @@ function renderHome() {
   $("savingsList").innerHTML = sav.length
     ? sav.map((x) => `<li><span>${esc(x.memo || "저축")} <span class="muted">${esc(x.date)}</span></span><span class="right"><span class="good">+${won(x.amount)}</span><button type="button" class="del" onclick="removeSaving(${x.i})">삭제</button></span></li>`).join("")
     : `<li class="muted">아직 기록이 없어요.</li>`;
-  $("monthlyNeed").textContent = `월 ${won(monthlyNeed)} 저축 필요`;
+  $("monthlyNeed").textContent = g.deadline ? `월 ${won(monthlyNeed)} 저축 필요` : `월 소득의 20%(${won(monthlyNeed)}) 저축 가정`;
 
   const resisted = data.resisted || [];
   $("resistedTotal").textContent = won(resisted.reduce((s, x) => s + x.amount, 0));
@@ -218,7 +220,7 @@ function saveData(data) { localStorage.setItem("data", JSON.stringify(data)); }
 $("savForm").onsubmit = (e) => {
   e.preventDefault();
   const data = load("data", null);
-  if (!data || !data.goal) { alert("먼저 목표를 설정해 주세요. (마이 페이지)"); return; }
+  if (!hasGoal(data)) { alert("먼저 목표를 설정해 주세요. (마이 페이지)"); return; }
   const amount = Math.round(Number($("savAmount").value));
   if (!(amount > 0)) return;
   data.savings = data.savings || [];
@@ -231,7 +233,7 @@ $("savForm").onsubmit = (e) => {
 
 function removeSaving(i) {
   const data = load("data", null);
-  if (!data || !data.goal || !data.savings || !data.savings[i]) return;
+  if (!hasGoal(data) || !data.savings || !data.savings[i]) return;
   const x = data.savings[i];
   if (!confirm(`"${x.memo || "저축"}" ${won(x.amount)} 기록을 삭제할까요? 현재 저축액에서도 빠져요.`)) return;
   data.savings.splice(i, 1);
@@ -243,7 +245,7 @@ function removeSaving(i) {
 $("impForm").onsubmit = (e) => {
   e.preventDefault();
   const data = load("data", null);
-  if (!data || !data.goal) { alert("먼저 목표를 설정해 주세요. (마이 페이지)"); return; }
+  if (!hasGoal(data)) { alert("먼저 목표를 설정해 주세요. (마이 페이지)"); return; }
   const item = $("impItem").value.trim();
   const amount = Math.round(Number($("impAmount").value));
   if (!item || !(amount > 0)) return;

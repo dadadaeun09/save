@@ -166,10 +166,10 @@ const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); retur
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
-/* ---------- 사용자 데이터 (처음엔 보기용 샘플로 채움) ---------- */
+/* ---------- 사용자 데이터 (새로 시작하면 목표·소득은 빈칸) ---------- */
 function defaultData() {
   return {
-    goal: { name: "유럽 여행", target: 3000000, saved: 0, deadline: addDays(180), income: 2500000 },
+    goal: { name: "", target: 0, saved: 0, deadline: "", income: 0 },
     resisted: [],
     impulse: [],
     history: [],
@@ -179,26 +179,29 @@ const persist = () => save("data", data);
 
 /* ---------- 계산 ---------- */
 function monthsLeft() {
+  if (!data.goal.deadline) return null;
   const days = (new Date(data.goal.deadline) - new Date(todayStr())) / 86400000;
   return Math.max(days / 30, 0.1);
 }
 const remaining = () => Math.max(data.goal.target - data.goal.saved, 0);
-const monthlyNeed = () => remaining() / monthsLeft();
+// 기한이 없으면 월 소득의 20%를 저축한다고 가정
+const monthlyNeed = () => (monthsLeft() ? remaining() / monthsLeft() : (Number(data.goal.income) || 0) * 0.2);
+const hasGoal = (d) => !!(d && d.goal && d.goal.name && Number(d.goal.target) > 0);
 const thisMonth = (d) => d.date.slice(0, 7) === todayStr().slice(0, 7);
 
 /* ---------- 렌더링 ---------- */
 function renderHome() {
-  const g = data.goal;
-  const pct = Math.min(g.saved / g.target * 100, 100);
+  const g = data.goal, has = hasGoal(data);
+  const pct = has ? Math.min(g.saved / g.target * 100, 100) : 0;
   $("home-title").textContent = "나의 저축 현황";
-  $("goal-name").textContent = g.name;
-  $("goal-deadline").textContent = `기한 ${g.deadline}`;
-  $("goal-target").textContent = won(g.target);
+  $("goal-name").textContent = has ? g.name : "아직 목표가 없어요 (마이 페이지에서 설정)";
+  $("goal-deadline").textContent = has ? (g.deadline ? `기한 ${g.deadline}` : "기한 없음") : "";
+  $("goal-target").textContent = has ? won(g.target) : "-";
   $("goal-bar").style.width = pct + "%";
-  $("goal-pct").textContent = `${pct.toFixed(1)}% 달성`;
-  $("goal-remain").textContent = `남은 금액 ${won(remaining())}`;
-  $("saved-now").textContent = won(g.saved);
-  $("monthly-need").textContent = `월 ${won(monthlyNeed())} 저축 필요`;
+  $("goal-pct").textContent = has ? `${pct.toFixed(1)}% 달성` : "";
+  $("goal-remain").textContent = has ? `남은 금액 ${won(remaining())}` : "";
+  $("saved-now").textContent = won(g.saved || 0);
+  $("monthly-need").textContent = !has ? "" : g.deadline ? `월 ${won(monthlyNeed())} 저축 필요` : `월 소득의 20%(${won(monthlyNeed())}) 저축 가정`;
   const rTotal = data.resisted.reduce((s, x) => s + x.amount, 0);
   $("resisted-total").textContent = won(rTotal);
   $("resisted-count").textContent = `구매를 참은 ${data.resisted.length}건`;
@@ -207,13 +210,14 @@ function renderHome() {
   $("impulse-total").textContent = won(iTotal);
   $("impulse-count").textContent = `${imp.length}건`;
   const delay = iTotal / Math.max(monthlyNeed() / 30, 1);
-  $("impulse-effect").textContent = iTotal ? `이 돈을 저축했다면 목표 달성이 약 ${Math.round(delay)}일 빨랐습니다.` : "이번 달 충동구매가 없습니다.";
+  $("impulse-effect").textContent = !iTotal ? "이번 달 충동구매가 없습니다."
+    : has ? `이 돈을 저축했다면 목표 달성이 약 ${Math.round(delay)}일 빨랐습니다.` : "목표를 설정하면 달성이 며칠 늦어졌는지 보여드려요.";
   $("impulse-list").innerHTML = imp.slice().reverse().map((x) => `<li><span>${esc(x.item)}</span><span class="bad">-${won(x.amount)}</span></li>`).join("");
 }
 
 function renderGroup() {
   const g = data.goal;
-  const me = Math.min(g.saved / g.target * 100, 100);
+  const me = g.target > 0 ? Math.min(g.saved / g.target * 100, 100) : 0;
   const members = [
     { name: "나", pct: me, me: true },
     { name: "저축왕 민지", pct: 78 }, { name: "차근차근 준호", pct: 61 },
@@ -263,6 +267,8 @@ $("chatform").onsubmit = (e) => {
   const price = parsePrice(text), name = itemName(text);
   if (!price) return aiSay("가격을 알 수 없습니다. '25만원'처럼 금액을 함께 입력해 주세요.");
 
+  if (!(Number(data.goal.income) > 0)) return aiSay("먼저 마이 페이지에서 월 소득을 설정해 주세요. 소득을 알아야 구매 금액을 근무 시간으로 환산할 수 있습니다.");
+  const hasG = hasGoal(data);
   const hourly = data.goal.income / 209;
   const hours = price / hourly;
   const perDay = Math.max(monthlyNeed() / 30, 1);
@@ -272,13 +278,13 @@ $("chatform").onsubmit = (e) => {
   let out = `[${name}] ${won(price)}\n\n`
     + `• 근무 시간 환산: 약 ${hours.toFixed(1)}시간 (시급 ${won(hourly)} 기준)\n`
     + `• 월 소득 대비: ${pctOfIncome.toFixed(1)}%\n`
-    + `• 목표 달성 지연: 약 ${delay}일 (목표: ${data.goal.name})\n`;
+    + (hasG ? `• 목표 달성 지연: 약 ${delay}일 (목표: ${data.goal.name})\n` : `• 저축 목표가 없어 달성 지연일은 계산하지 않았습니다. (마이 페이지에서 설정)\n`);
   const prev = data.history.filter((h) => h.name.includes(name) || name.includes(h.name));
   if (prev.length) {
     const last = prev[prev.length - 1];
     out += `\n⚠ 과거 기록: 이미 "${last.name}" 관련 구매를 상담한 적이 있습니다 (${last.date}, 결과: ${last.decision}). 같은 결정을 반복하는 것은 아닌지 확인하세요.\n`;
   }
-  out += `\n확인할 질문:\n1) 지난 3개월 동안 비슷한 필요가 몇 번 있었습니까?\n2) 이미 보유한 대체품이 있습니까?\n3) 중고·대여 등 더 저렴한 대안은 검토했습니까?\n\n결론: 목표 달성을 ${delay}일 늦출 만큼의 필요가 입증되지 않았다면 구매를 권장하지 않습니다.`;
+  out += `\n확인할 질문:\n1) 지난 3개월 동안 비슷한 필요가 몇 번 있었습니까?\n2) 이미 보유한 대체품이 있습니까?\n3) 중고·대여 등 더 저렴한 대안은 검토했습니까?\n\n결론: ${hasG ? `목표 달성을 ${delay}일 늦출 만큼` : "이 금액을 쓸 만큼"}의 필요가 입증되지 않았다면 구매를 권장하지 않습니다.`;
 
   const el = addMsg("ai", esc(out));
   const box = document.createElement("div"); box.className = "choices";

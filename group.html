@@ -90,6 +90,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="supabase.js"></script>
 <script>
+const hasGoal = (d) => !!(d && d.goal && d.goal.name && Number(d.goal.target) > 0); // 목표 이름과 금액이 있어야 "목표 있음"
 /* 데이터 키
    "data"   : 홈과 동일. { goal:{name,target,saved,deadline,income}, ... }
    "groups" : [{ id, name, code, members:[{ uid, name, shared:null | {goal,pct,saved,target,at} }] }] */
@@ -152,7 +153,7 @@ const manwon = (n) => Math.round(n / 10000).toLocaleString("ko-KR") + "만원";
 
 function autoMatch() {
   const data = load("data", null);
-  if (!data || !data.goal) return alert("먼저 저축 목표를 설정해 주세요. (마이 탭)");
+  if (!hasGoal(data)) return alert("먼저 저축 목표를 설정해 주세요. (마이 탭)");
   const goal = data.goal;
   const near = (t) => Math.abs(t - goal.target) / goal.target <= TOLERANCE;
   const groups = getGroups();
@@ -188,7 +189,7 @@ function leaveGroup() {
 }
 function shareProgress() {
   const data = load("data", null);
-  if (!data || !data.goal) return alert("먼저 저축 목표를 설정해 주세요. (마이 탭)");
+  if (!hasGoal(data)) return alert("먼저 저축 목표를 설정해 주세요. (마이 탭)");
   const g = data.goal;
   const groups = getGroups();
   const me = myGroup(groups).members.find((m) => m.uid === myId);
