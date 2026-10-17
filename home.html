@@ -116,25 +116,25 @@ function logout() {
   location.href = "login.html";
 }
 const user = getCurrentUser();
-if (!user) location.replace("login.html");
+/* 홈은 로그인 없이 볼 수 있어요. 그룹 페이지에 들어갈 때 로그인합니다. */
 
 /* ---------- 메뉴 (하단바 + 석 삼 자 목록) ---------- */
 /* 그룹/AI 채팅은 index.html의 탭(#주소로 지정), 마이는 mypage.html 입니다. */
 const pages = [
   { name: "홈", href: "home.html", active: true },
-  { name: "그룹", href: "group.html" },
+  { name: "그룹", href: "group.html" } /* 로그인 필요: 안 했으면 로그인 후 돌아옴 */,
   { name: "AI 채팅", href: "index.html#chat" },
   { name: "마이", href: "mypage.html" },
 ];
 const links = pages.map((p) => `<a href="${p.href}" class="${p.active ? "active" : ""}">${p.name}</a>`).join("");
 $("bottomBar").innerHTML = links;
-$("dropdown").innerHTML = links + `<hr><button type="button" onclick="logout()">로그아웃</button>`;
+$("dropdown").innerHTML = links + `<hr>` + (user ? `<button type="button" onclick="logout()">로그아웃</button>` : `<a href="login.html">로그인</a>`);
 $("menuButton").onclick = (e) => { e.stopPropagation(); $("dropdown").classList.toggle("open"); };
 document.addEventListener("click", () => $("dropdown").classList.remove("open"));
 
 /* ---------- 홈 화면 ---------- */
 function renderHome() {
-  $("welcome").textContent = `${user.name}님, 오늘도 한 걸음`;
+  $("welcome").textContent = user ? `${user.name}님, 오늘도 한 걸음` : "오늘도 한 걸음";
   const data = load("data", null);
 
   // 아직 목표가 없으면 안내만 보여줘요
@@ -180,7 +180,7 @@ function renderHome() {
   $("impulseList").innerHTML = imp.slice().reverse()
     .map((x) => `<li><span>${esc(x.item)}</span><span class="bad">-${won(x.amount)}</span></li>`).join("");
 }
-if (user) renderHome();
+renderHome();
 </script>
 </body>
 </html>

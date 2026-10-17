@@ -109,9 +109,11 @@ function logout() {
   location.href = "login.html";
 }
 const user = getCurrentUser();
-if (!user) location.replace("login.html");
+if (!user) location.replace("login.html?next=group.html");
 /* 유저 아이디: 로그인 정보에 있는 아이디 계열 값을 우선 사용 */
 const myId = user ? String(user.id ?? user.userId ?? user.username ?? user.email ?? user.name) : "";
+/* 다른 사람에게는 이메일 전체 대신 @ 앞부분만 보여줘요 */
+const showId = (uid) => String(uid).split("@")[0];
 
 /* ---------- 메뉴 ---------- */
 const pages = [
@@ -229,7 +231,7 @@ function render() {
     const isMe = m.uid === myId;
     return `<div class="member">
       <div class="row">
-        <span><span class="uid">@${esc(m.uid)}</span>${isMe ? '<span class="tag">나</span>' : ""}${m.sample ? '<span class="tag">예시</span>' : ""}
+        <span><span class="uid">@${esc(showId(m.uid))}</span>${isMe ? '<span class="tag">나</span>' : ""}${m.sample ? '<span class="tag">예시</span>' : ""}
           <span class="muted"> ${esc(m.name)}</span></span>
         ${s ? `<b>${s.pct.toFixed(1)}%</b>` : '<span class="muted">미공유</span>'}
       </div>

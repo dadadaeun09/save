@@ -86,7 +86,12 @@ function getCurrentUser() {
     return t ? JSON.parse(t) : null;
   } catch { return null; }
 }
-if (getCurrentUser()) location.replace("home.html");
+/* 로그인 후 돌아갈 페이지 (?next=group.html). 사이트 안의 .html 파일만 허용 */
+const nextPage = (() => {
+  const n = new URLSearchParams(location.search).get("next") || "";
+  return /^[\w-]+\.html$/.test(n) ? n : "home.html";
+})();
+if (getCurrentUser()) location.replace(nextPage);
 
 function showTab(login) {
   $("loginTab").classList.toggle("active", login);
@@ -123,7 +128,7 @@ $("loginForm").onsubmit = (e) => {
   const text = JSON.stringify({ email, name: user.name });
   try { sessionStorage.removeItem("currentUser"); localStorage.removeItem("currentUser"); } catch {}
   (($("autoLogin").checked) ? localStorage : sessionStorage).setItem("currentUser", text);
-  location.href = "home.html";
+  location.href = nextPage;
 };
 </script>
 </body>
