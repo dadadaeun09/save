@@ -82,28 +82,23 @@
 
   <section class="card soft" id="goalCard"></section>
 
-  <div class="grid">
-    <section class="card">
-      <h3>현재 저축액</h3>
-      <div class="big" id="savedNow"></div>
-      <div class="muted" id="monthlyNeed"></div>
-    </section>
-    <section class="card">
-      <h3>아낀 금액</h3>
-      <div class="big" id="resistedTotal"></div>
-      <div class="muted" id="resistedCount"></div>
-    </section>
-  </div>
-
   <section class="card">
-    <h3>저축 기록</h3>
-    <div class="muted">저축한 금액을 적으면 현재 저축액에 더해지고, 삭제하면 다시 빠져요.</div>
+    <h3>현재 저축액</h3>
+    <div class="big" id="savedNow"></div>
+    <div class="muted" id="monthlyNeed"></div>
     <form class="imp-form" id="savForm">
       <input type="text" id="savMemo" placeholder="메모 (예: 월급 저축)" maxlength="40" />
-      <input type="number" id="savAmount" placeholder="금액(원)" min="1" step="1" required />
+      <input type="number" id="savAmount" placeholder="저축한 금액(원)" min="1" step="1" required />
       <button class="btn" type="submit">추가</button>
     </form>
+    <div class="muted">저축한 금액을 적으면 현재 저축액에 더해지고, 삭제하면 다시 빠져요. (목표 금액은 바뀌지 않아요)</div>
     <ul class="list" id="savingsList"></ul>
+  </section>
+
+  <section class="card">
+    <h3>아낀 금액</h3>
+    <div class="big" id="resistedTotal"></div>
+    <div class="muted" id="resistedCount"></div>
   </section>
 
   <section class="card">
