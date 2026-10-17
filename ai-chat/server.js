@@ -4,6 +4,29 @@ import { GoogleGenAI } from "@google/genai";
 
 const app = express();
 app.use(express.json());
+app.set("trust proxy", 1);
+
+// 허용한 사이트(GitHub Pages)에서만 이 서버를 부를 수 있게 함
+const ALLOWED = ["https://dadadaeun09.github.io", "http://localhost:3000"];
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (ALLOWED.includes(origin)) res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+
+// 한 사람이 10분에 30번까지만 (API 사용량 보호)
+const hits = new Map();
+app.use("/api/chat", (req, res, next) => {
+  const now = Date.now();
+  const recent = (hits.get(req.ip) || []).filter((t) => now - t < 600000);
+  if (recent.length >= 30) return res.status(429).json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도하세요." });
+  recent.push(now);
+  hits.set(req.ip, recent);
+  next();
+});
 app.use(express.static("public"));
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -31,20 +54,40 @@ const SYSTEM_PROMPT = `
 매 답변 마지막 줄에 반드시 [판정:대화중] / [판정:승인] / [판정:거절] 중 하나를 붙여.
 `;
 
+// 구글 서버가 바쁠 때(503, 429) 잠깐 기다렸다가 최대 3번 다시 시도
+const MODEL = "gemini-3.8-flash";
+async function generate(contents) {
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await ai.models.generateContent({
+        model: MODEL,
+        contents,
+        config: { systemInstruction: SYSTEM_PROMPT },
+      });
+    } catch (err) {
+      lastErr = err;
+      if (err.status !== 503 && err.status !== 429) throw err;
+      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+    }
+  }
+  throw lastErr;
+}
+
 app.post("/api/chat", async (req, res) => {
   try {
     const { messages } = req.body;
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 40 ||
+        messages.some((m) => typeof m.content !== "string" || m.content.length > 2000)) {
+      return res.status(400).json({ error: "잘못된 요청입니다." });
+    }
 
     const contents = messages.map((m) => ({
       role: m.role === "assistant" ? "model" : "user",
       parts: [{ text: m.content }],
     }));
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.8-flash",
-      contents,
-      config: { systemInstruction: SYSTEM_PROMPT },
-    });
+    const response = await generate(contents);
 
     const text = response.text;
     const verdict = text.match(/\[판정:(.+?)\]/)?.[1] ?? "대화중";
@@ -57,4 +100,5 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log("http://localhost:3000"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("http://localhost:" + PORT));
