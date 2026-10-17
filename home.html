@@ -122,8 +122,8 @@ if (!user) location.replace("login.html");
 const pages = [
   { name: "홈", href: "home.html", active: true },
   { name: "그룹", href: "index.html#group" },
-  { name: "마이", href: "mypage.html" },
   { name: "AI 채팅", href: "index.html#chat" },
+  { name: "마이", href: "mypage.html" },
 ];
 const links = pages.map((p) => `<a href="${p.href}" class="${p.active ? "active" : ""}">${p.name}</a>`).join("");
 $("bottomBar").innerHTML = links;
