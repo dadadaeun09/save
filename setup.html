@@ -56,8 +56,9 @@
       <input id="goalName" maxlength="30" placeholder="예: 유럽 여행, 노트북 구매" />
       <label for="goalTarget">목표 금액 (원) <span class="req">*</span></label>
       <input id="goalTarget" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 3000000" />
-      <label for="goalDeadline">목표 기한 <span class="req">*</span></label>
+      <label for="goalDeadline">목표 기한 <span class="opt">(선택)</span></label>
       <input id="goalDeadline" type="date" />
+      <p class="muted" style="margin-top:6px">비워 두면 월 소득의 20%를 저축한다고 가정해 계산해요.</p>
     </div>
 
     <div class="card">
@@ -146,7 +147,6 @@ $("setupForm").onsubmit = (e) => {
   const income = Math.round(Number($("income").value));
   if (!name) { err.textContent = "저축 목표를 입력해 주세요."; return; }
   if (!(target > 0)) { err.textContent = "목표 금액을 1원 이상으로 입력해 주세요."; return; }
-  if (!deadline) { err.textContent = "목표 기한을 선택해 주세요."; return; }
   if (!(income > 0)) { err.textContent = "한 달 소득을 1원 이상으로 입력해 주세요."; return; }
   if (!addFixedFromInputs()) return;
 
