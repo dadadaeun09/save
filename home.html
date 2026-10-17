@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>돈모으기운동 - 홈</title>
+<title>SPENDICT - Home</title>
 <style>
   :root {
     --green: #4caf7d; --green-dark: #3d9468; --pastel: #6fb98f; --pastel-text: #5a9e78;
@@ -72,7 +72,7 @@
 <body>
 
 <header class="topbar">
-  <a class="logo" href="home.html">돈모으기운동</a>
+  <a class="logo" href="home.html">SPENDICT</a>
   <button class="menu-button" id="menuButton" aria-label="메뉴 열기"><span></span><span></span><span></span></button>
   <div class="dropdown" id="dropdown"></div>
 </header>
@@ -181,7 +181,7 @@ function renderHome() {
     : (Number(g.income) || 0) * 0.2;
 
   $("goalCard").innerHTML = `
-    <h3>저축 목표</h3>
+    <h3>GOAL</h3>
     <div class="row"><b>${esc(g.name)}</b><span class="muted">${g.deadline ? "기한 " + esc(g.deadline) : "기한 없음"}</span></div>
     <div class="big">${won(g.target)}</div>
     <div class="progress"><i style="width:${pct}%"></i></div>
