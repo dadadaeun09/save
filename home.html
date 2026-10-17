@@ -181,7 +181,7 @@ function renderHome() {
     : (Number(g.income) || 0) * 0.2;
 
   $("goalCard").innerHTML = `
-    <h3>GOAL</h3>
+    <h3>목표 금액</h3>
     <div class="row"><b>${esc(g.name)}</b><span class="muted">${g.deadline ? "기한 " + esc(g.deadline) : "기한 없음"}</span></div>
     <div class="big">${won(g.target)}</div>
     <div class="progress"><i style="width:${pct}%"></i></div>
