@@ -122,8 +122,8 @@ const user = getCurrentUser();
 /* 그룹/AI 채팅은 index.html의 탭(#주소로 지정), 마이는 mypage.html 입니다. */
 const pages = [
   { name: "홈", href: "home.html", active: true },
-  { name: "그룹", href: "group.html" } /* 로그인 필요: 안 했으면 로그인 후 돌아옴 */,
   { name: "AI 채팅", href: "index.html#chat" },
+  { name: "그룹", href: "group.html" } /* 로그인 필요: 안 했으면 로그인 후 돌아옴 */,
   { name: "마이", href: "mypage.html" },
 ];
 const links = pages.map((p) => `<a href="${p.href}" class="${p.active ? "active" : ""}">${p.name}</a>`).join("");

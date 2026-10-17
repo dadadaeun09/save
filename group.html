@@ -118,9 +118,9 @@ const showId = (uid) => String(uid).split("@")[0];
 /* ---------- 메뉴 ---------- */
 const pages = [
   { name: "홈", href: "home.html" },
+  { name: "AI 채팅", href: "index.html#chat" },
   { name: "그룹", href: "group.html", active: true },
   { name: "마이", href: "index.html#my" },
-  { name: "AI 채팅", href: "index.html#chat" },
 ];
 const links = pages.map((p) => `<a href="${p.href}" class="${p.active ? "active" : ""}">${p.name}</a>`).join("");
 $("bottomBar").innerHTML = links;
