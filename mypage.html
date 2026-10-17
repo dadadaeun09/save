@@ -125,6 +125,7 @@
     </div>
 
     <div class="card flush">
+      <button class="item" id="reset-data"><span>저축 데이터 초기화<span class="sub">현재 저축액, 아낀 금액, 충동구매를 0원으로 되돌려요</span></span></button>
       <button class="item" id="logout">로그아웃</button>
       <button class="item danger" id="withdraw">회원 탈퇴</button>
     </div>
@@ -313,6 +314,17 @@ $("held-card").onclick = (e) => {
   if (b.dataset.act === "skip") { data.resisted.push({ item: h.item, amount: h.amount, date: todayStr() }); toast("아낀 금액에 반영했습니다"); }
   else { data.impulse.push({ item: h.item, amount: h.amount, date: todayStr() }); toast("충동구매로 기록했습니다"); }
   data.held.splice(i, 1); persist(); renderHeld();
+};
+
+/* ---------- 저축 데이터 초기화 ---------- */
+/* 목표(이름·금액·기한)와 소득, 보류 품목은 그대로 두고 금액 기록만 0으로 되돌려요. */
+$("reset-data").onclick = () => {
+  if (!confirm("현재 저축액, 아낀 금액, 충동구매, 저축 내역이 모두 0원으로 초기화됩니다.\n목표와 소득 설정은 그대로 유지돼요. 되돌릴 수 없습니다.\n초기화할까요?")) return;
+  data.goal.saved = 0;
+  data.resisted = [];
+  data.impulse = [];
+  data.savings = [];
+  persist(); renderMain(); toast("저축 데이터가 0원으로 초기화되었습니다");
 };
 
 /* ---------- 로그아웃 / 회원 탈퇴 ---------- */
