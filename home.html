@@ -56,6 +56,15 @@
   .bad { color: var(--red); }
   .btn { display: inline-block; padding: 10px 18px; border: 0; border-radius: 10px; background: var(--green); color: #fff; }
   .btn:hover { background: var(--green-dark); }
+
+  /* 충동구매 추가/삭제 */
+  .imp-form { display: grid; grid-template-columns: 1fr 130px auto; gap: 8px; margin: 14px 0 4px; }
+  .imp-form input { width: 100%; padding: 10px 12px; border: 2px solid var(--pastel-light); border-radius: 10px; font: inherit; color: #3f6b52; }
+  .imp-form .btn { padding: 10px 16px; font: inherit; cursor: pointer; white-space: nowrap; }
+  ul.list li .right { display: flex; align-items: center; gap: 4px; }
+  .del { border: 0; background: none; color: var(--gray); font: inherit; font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
+  .del:hover { background: #fdecec; color: var(--red); }
+  @media (max-width: 480px) { .imp-form { grid-template-columns: 1fr 1fr; } .imp-form .btn { grid-column: 1 / -1; } }
 </style>
 <link rel="stylesheet" href="polish.css" />
 </head>
@@ -89,6 +98,11 @@
     <h3>이번 달 충동구매</h3>
     <div class="row"><div class="big red" id="impulseTotal"></div><span class="muted" id="impulseCount"></span></div>
     <div class="muted" id="impulseEffect"></div>
+    <form class="imp-form" id="impForm">
+      <input type="text" id="impItem" placeholder="무엇을 샀나요? (예: 야식)" maxlength="40" required />
+      <input type="number" id="impAmount" placeholder="금액(원)" min="1" step="1" required />
+      <button class="btn" type="submit">추가</button>
+    </form>
     <ul class="list" id="impulseList"></ul>
   </section>
 </main>
@@ -171,7 +185,7 @@ function renderHome() {
   $("resistedCount").textContent = `구매를 참은 ${resisted.length}건`;
 
   const month = todayStr().slice(0, 7);
-  const imp = (data.impulse || []).filter((x) => x.date.slice(0, 7) === month);
+  const imp = (data.impulse || []).map((x, i) => ({ ...x, i })).filter((x) => x.date.slice(0, 7) === month);
   const total = imp.reduce((s, x) => s + x.amount, 0);
   $("impulseTotal").textContent = won(total);
   $("impulseCount").textContent = `${imp.length}건`;
@@ -180,8 +194,36 @@ function renderHome() {
     ? `이 돈을 저축했다면 목표 달성이 약 ${Math.round(delay)}일 빨랐습니다.`
     : "이번 달 충동구매가 없습니다.";
   $("impulseList").innerHTML = imp.slice().reverse()
-    .map((x) => `<li><span>${esc(x.item)}</span><span class="bad">-${won(x.amount)}</span></li>`).join("");
+    .map((x) => `<li><span>${esc(x.item)}</span><span class="right"><span class="bad">-${won(x.amount)}</span><button type="button" class="del" onclick="removeImpulse(${x.i})">삭제</button></span></li>`).join("");
 }
+
+/* ---------- 충동구매 추가 / 삭제 ---------- */
+/* 같은 localStorage "data"의 impulse 목록만 바꿔요. 저장하면 supabase.js가 DB에도 자동으로 올려줘요. */
+function saveData(data) { localStorage.setItem("data", JSON.stringify(data)); }
+
+$("impForm").onsubmit = (e) => {
+  e.preventDefault();
+  const data = load("data", null);
+  if (!data || !data.goal) { alert("먼저 목표를 설정해 주세요. (마이 페이지)"); return; }
+  const item = $("impItem").value.trim();
+  const amount = Math.round(Number($("impAmount").value));
+  if (!item || !(amount > 0)) return;
+  data.impulse = data.impulse || [];
+  data.impulse.push({ item, amount, date: todayStr() });
+  saveData(data);
+  e.target.reset();
+  renderHome();
+};
+
+function removeImpulse(i) {
+  const data = load("data", null);
+  if (!data || !data.impulse || !data.impulse[i]) return;
+  if (!confirm(`"${data.impulse[i].item}" 기록을 삭제할까요?`)) return;
+  data.impulse.splice(i, 1);
+  saveData(data);
+  renderHome();
+}
+
 renderHome();
 </script>
 </body>
