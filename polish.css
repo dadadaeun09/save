@@ -314,3 +314,7 @@ nav#tabbar .inner span { display: none; }
 #app { display: flex; flex-direction: column; }
 #app > .site-footer { margin-top: auto; padding-top: 48px; padding-bottom: 76px; border-top: 0; position: relative; }  /* 아래 76px은 하단 이동바 자리 */
 #app > .site-footer::before { content: ""; position: absolute; left: 0; right: 0; top: 32px; border-top: 1px solid var(--hair); }
+
+/* 푸터가 하단 이동바 위를 덮어서 클릭을 가로채지 않게, 이동바를 푸터보다 항상 위에 둬요 */
+nav#tabbar, .bottom-bar { z-index: 50; }
+nav#tabbar .inner { z-index: 50; }
