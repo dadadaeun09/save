@@ -127,12 +127,15 @@ $("menuButton").onclick = (e) => { e.stopPropagation(); $("dropdown").classList.
 document.addEventListener("click", () => $("dropdown").classList.remove("open"));
 
 /* ---------- 그룹 데이터 (Supabase) ----------
-   그룹/대기열은 Supabase DB에 저장돼 기기·사람이 달라도 매칭돼요. (테이블·함수: supabase_group.sql) */
+   그룹/대기열은 Supabase DB에 저장돼 기기·사람이 달라도 매칭돼요. (테이블·함수: supabase_group.sql)
+   멤버 변화는 broadcast 신호 + 4초마다 확인으로 실시간 반영해요. */
 const sb = window.sbApp.client;
+const MAX_MEMBERS = 6;
 const manwon = (n) => Math.round(n / 10000).toLocaleString("ko-KR") + "만원";
 let myUid = null;               // Supabase 로그인 사용자 id
 let st = { group: null, members: [], waiting: false };
 let notice = "";                // 화면에 띄우는 안내 문구
+let lastShown = "";             // 마지막으로 그린 상태(바뀔 때만 다시 그림)
 
 const rpc = async (fn, args) => {
   const { data, error } = await sb.rpc(fn, args);
@@ -141,7 +144,7 @@ const rpc = async (fn, args) => {
     notice = /Could not find the function|does not exist|schema cache/i.test(error.message)
       ? "그룹 기능용 DB 설정(supabase_group.sql)이 아직 적용되지 않았어요."
       : "오류가 발생했어요: " + error.message;
-    render(); return { error };
+    render(true); return { error };
   }
   return { data };
 };
@@ -149,39 +152,71 @@ const myGoal = () => { const d = load("data", null); return hasGoal(d) ? d.goal 
 const goalPct = (g) => Math.min((g.saved / g.target) * 100, 100);
 const noGroup = () => ({ group: null, members: [], waiting: false });
 
+/* ---------- 실시간: 같은 그룹 멤버끼리 변화 신호 주고받기 ---------- */
+let chan = null, chanGid = null, pendingPing = false;
+function watchGroup(gid) {
+  if (chanGid === gid) return;
+  if (chan) sb.removeChannel(chan);
+  chan = null; chanGid = gid;
+  if (!gid) return;
+  chan = sb.channel("group-" + gid)
+    .on("broadcast", { event: "changed" }, () => refresh())
+    .subscribe((s) => { if (s === "SUBSCRIBED" && pendingPing) { pendingPing = false; chan.send({ type: "broadcast", event: "changed", payload: {} }); } });
+}
+const ping = () => { if (chan) chan.send({ type: "broadcast", event: "changed", payload: {} }); else pendingPing = true; };
+
+/* ---------- 상태 가져오기 + 내 달성현황 자동 공유 ---------- */
+let syncing = false;
+async function syncMyProgress() {
+  const me = st.members.find((m) => m.user_id === myUid), g = myGoal();
+  if (!st.group || !me || !g || syncing) return;
+  const pct = goalPct(g);
+  const same = me.shared_pct !== null && Math.abs(Number(me.shared_pct) - pct) < 0.05 && me.shared_goal === g.name.slice(0, 40);
+  if (same) return;
+  syncing = true;
+  const r = await rpc("share_progress", { p_goal: g.name, p_pct: pct });
+  syncing = false;
+  if (!r.error) { st = r.data; ping(); }
+}
+async function refresh() {
+  const r = await rpc("my_group_state");
+  if (r.error) return;
+  st = r.data;
+  if (st.group) notice = "";
+  watchGroup(st.group ? st.group.id : null);
+  await syncMyProgress();
+  render();
+}
+
 async function autoMatch() {
   const g = myGoal();
-  if (!g) { notice = "먼저 저축 목표를 설정해 주세요. (마이 탭)"; return render(); }
+  if (!g) { notice = "먼저 저축 목표를 설정해 주세요. (마이 탭)"; return render(true); }
   const r = await rpc("find_match", { p_target: g.target, p_goal: g.name, p_pct: goalPct(g), p_name: user.name });
   if (r.error) return;
   st = r.data;
-  notice = st.group ? "" : "목표금액이 비슷한 사람이 없어서 매칭이 안 됐어요. 비슷한 사람이 매칭을 시작하면 이 페이지를 다시 열었을 때 그룹이 만들어져 있어요.";
-  render();
+  notice = st.group ? "" : "목표금액이 비슷한 사람이 없어서 매칭이 안 됐어요. 대기열에 등록해 두었으니 비슷한 사람이 나타나면 자동으로 그룹이 만들어져요.";
+  if (st.group) { pendingPing = true; watchGroup(st.group.id); }
+  render(true);
 }
 async function cancelMatch() {
   const r = await rpc("cancel_match");
   if (r.error) return;
-  st = noGroup(); notice = ""; render();
+  st = noGroup(); notice = ""; render(true);
 }
 async function leaveGroup() {
-  if (!confirm("정말 그룹을 나갈까요?")) return;
+  if (!confirm("정말 이 그룹에서 나갈까요?\n나가면 다른 멤버에게 내 달성현황이 더 이상 보이지 않아요.")) return;
   const r = await rpc("leave_group");
   if (r.error) return;
-  st = noGroup(); notice = ""; render();
-}
-async function shareProgress() {
-  const g = myGoal();
-  if (!g) { notice = "먼저 저축 목표를 설정해 주세요. (마이 탭)"; return render(); }
-  const r = await rpc("share_progress", { p_goal: g.name, p_pct: goalPct(g) });
-  if (!r.error) { st = r.data; notice = ""; render(); }
-}
-async function stopSharing() {
-  const r = await rpc("stop_sharing");
-  if (!r.error) { st = r.data; notice = ""; render(); }
+  if (chan) { try { await chan.send({ type: "broadcast", event: "changed", payload: {} }); } catch {} }
+  watchGroup(null);
+  st = noGroup(); notice = ""; render(true);
 }
 
 /* ---------- 화면 ---------- */
-function render() {
+function render(force) {
+  const key = JSON.stringify([st, notice]);
+  if (!force && key === lastShown) return;
+  lastShown = key;
   const g = st.group;
   const msg = notice ? `<section class="card soft"><p class="muted" style="margin:0">${esc(notice)}</p></section>` : "";
 
@@ -196,13 +231,13 @@ function render() {
           <button class="btn" onclick="autoMatch()">${st.waiting ? "다시 매칭하기" : "자동 매칭 시작"}</button>
           ${st.waiting ? '<button class="btn ghost" onclick="cancelMatch()">대기 취소</button>' : ""}
         </div>
-        ${st.waiting && !notice ? '<p class="muted">매칭 대기 중이에요. 비슷한 사람이 나타나면 그룹이 만들어져요.</p>' : ""}
+        ${st.waiting && !notice ? '<p class="muted">매칭 대기 중이에요. 비슷한 사람이 나타나면 자동으로 그룹이 만들어져요.</p>' : ""}
       </section>`;
     return;
   }
 
-  const me = st.members.find((m) => m.user_id === myUid) || {};
   $("welcome").textContent = g.name;
+  const hasMyGoal = !!myGoal();
 
   const members = st.members.map((m) => {
     const shared = m.shared_pct !== null && m.shared_pct !== undefined;
@@ -215,34 +250,22 @@ function render() {
       </div>
       ${shared ? `
         <div class="progress"><i style="width:${Number(m.shared_pct)}%"></i></div>
-        <div class="row"><span class="muted">${esc(m.shared_goal || "")}</span>
-          <span class="muted">${esc(new Date(m.shared_at).toLocaleString("ko-KR"))}</span></div>`
-        : '<div class="empty">아직 달성현황을 공유하지 않았어요.</div>'}
+        <div class="muted">${esc(m.shared_goal || "")}</div>`
+        : `<div class="empty">${isMe && !hasMyGoal ? "목표를 설정하면 달성현황이 자동으로 공유돼요." : "아직 달성현황이 없어요."}</div>`}
     </div>`;
   }).join("");
 
-  const meShared = me.shared_pct !== null && me.shared_pct !== undefined;
   $("content").innerHTML = msg + `
     <section class="card soft">
-      <div class="row"><span class="muted">멤버 ${st.members.length}명</span>
+      <div class="row"><span class="muted">멤버 ${st.members.length}/${MAX_MEMBERS}명</span>
         <span class="muted">목표금액 평균 ${manwon(g.avg_target)} 전후</span></div>
-      <div class="actions">
-        <button class="btn danger" onclick="leaveGroup()">그룹 나가기</button>
-      </div>
-    </section>
-
-    <section class="card">
-      <h3>내 달성현황 공유</h3>
-      <p class="muted">홈에 표시되는 저축 목표 달성률을 그룹 멤버에게 보여줘요.</p>
-      <div class="actions">
-        <button class="btn" onclick="shareProgress()">${meShared ? "현황 새로 공유" : "달성현황 공유하기"}</button>
-        ${meShared ? '<button class="btn ghost" onclick="stopSharing()">공유 중지</button>' : ""}
-      </div>
+      <p class="muted" style="margin:6px 0 0">내 달성현황은 목표가 바뀌면 자동으로 공유돼요.</p>
     </section>
 
     <section class="card">
       <h3>멤버 달성현황</h3>
       ${members}
+      <div class="actions"><button class="btn danger" onclick="leaveGroup()">그룹 나가기</button></div>
     </section>`;
 }
 
@@ -254,9 +277,11 @@ async function init() {
     location.replace("login.html?next=group.html"); return;
   }
   myUid = session.user.id;
-  const r = await rpc("my_group_state");
-  if (!r.error) st = r.data;
-  render();
+  await refresh();
+  render(true);
+  setInterval(() => { if (!document.hidden) refresh(); }, 4000);   // 멤버 입·퇴장, 달성률 변화 확인
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
+  window.addEventListener("storage", (e) => { if (e.key === "data") refresh(); });
 }
 if (user) init();
 </script>
