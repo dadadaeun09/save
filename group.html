@@ -115,10 +115,10 @@ if (!user) location.replace("login.html?next=group.html");
 
 /* ---------- 메뉴 ---------- */
 const pages = [
-  { name: "홈", href: "home.html" },
-  { name: "AI 채팅", href: "index.html#chat" },
-  { name: "그룹", href: "group.html", active: true },
-  { name: "마이", href: "mypage.html" },
+  { name: "Home", href: "home.html" },
+  { name: "AI chat", href: "index.html#chat" },
+  { name: "Group", href: "group.html", active: true },
+  { name: "My page", href: "mypage.html" },
 ];
 const links = pages.map((p) => `<a href="${p.href}" class="${p.active ? "active" : ""}">${p.name}</a>`).join("");
 $("bottomBar").innerHTML = links;
