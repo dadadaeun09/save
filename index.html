@@ -261,18 +261,17 @@ function itemName(t) {
   return t.replace(/(\d+(?:\.\d+)?)\s*만\s*원?/g, "").replace(/\d[\d,]*\s*원?/g, "")
     .replace(/(살까|사고 싶|사려|구매|할까|하고 싶|사도 될까)\S*/g, "").replace(/[?!.]/g, "").trim() || "물건";
 }
-/* 말풍선이 아래의 입력창과 이동바에 가려지지 않도록, 그 높이만큼 여유를 두고 맨 아래로 스크롤해요.
-   (그냥 scrollIntoView만 하면 말풍선 아랫부분이 입력창 뒤로 숨고, 화면이 아래까지 안 내려가요) */
+/* 대화는 #chatlog 안에서 스크롤돼요. 새 말풍선이 생기면 그 영역의 맨 아래로 내려가요. */
 function scrollChatToEnd(el) {
-  const form = $("chatform").getBoundingClientRect();
-  el.style.scrollMarginBottom = Math.max(innerHeight - form.top, 0) + 12 + "px";
+  el.style.scrollMarginBottom = "8px";
   el.scrollIntoView({ block: "end", behavior: "instant" }); // 부드럽게 말고 즉시: 연달아 호출돼도 어긋나지 않게
 }
 function addMsg(cls, html) {
   const d = document.createElement("div"); d.className = "msg " + cls; d.innerHTML = html;
+  const log = $("chatlog");
   // 위쪽 대화를 읽는 중이면 AI 답변이 와도 끌어내리지 않아요. (내가 보낸 말풍선은 항상 맨 아래로)
-  const nearBottom = document.documentElement.scrollHeight - (window.scrollY + innerHeight) < 700;
-  $("chatlog").appendChild(d);
+  const nearBottom = log.scrollHeight - (log.scrollTop + log.clientHeight) < 300;
+  log.appendChild(d);
   if (cls === "user" || nearBottom) scrollChatToEnd(d);
   return d;
 }
