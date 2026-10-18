@@ -301,3 +301,16 @@ nav#tabbar .inner span { display: none; }
 
 /* ----- 상단바: 화면 맨 위에 붙어 따라다니지 않고, 페이지를 내리면 같이 올라가요 ----- */
 .topbar, .navbar { position: relative; top: auto; }   /* relative: 펼침 메뉴(.dropdown)가 상단바 기준으로 열리게 */
+
+/* ---------- 푸터: 카피라이트 / AI 안내 / 문의 ---------- */
+.site-footer { margin-top: 32px; padding: 16px 8px 4px; border-top: 1px solid var(--hair); text-align: center; font-size: 12px; line-height: 1.7; color: var(--ink-mute); }
+.site-footer p { margin: 0; }
+.site-footer a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.site-footer a:hover { color: var(--ink); }
+.site-footer.floating { position: fixed; left: 0; right: 0; bottom: 10px; margin: 0; padding: 0 16px; border: 0; pointer-events: none; }
+.site-footer.floating a { pointer-events: auto; }
+
+/* index.html(AI 채팅)과 마이 페이지는 내용이 짧아도 푸터가 화면 맨 아래로 내려가게 해요 */
+#app { display: flex; flex-direction: column; }
+#app > .site-footer { margin-top: auto; padding-top: 48px; padding-bottom: 76px; border-top: 0; position: relative; }  /* 아래 76px은 하단 이동바 자리 */
+#app > .site-footer::before { content: ""; position: absolute; left: 0; right: 0; top: 32px; border-top: 1px solid var(--hair); }
