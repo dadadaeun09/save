@@ -92,8 +92,7 @@
 <script>
 const hasGoal = (d) => !!(d && d.goal && d.goal.name && Number(d.goal.target) > 0); // 목표 이름과 금액이 있어야 "목표 있음"
 /* 데이터 키
-   "data"   : 홈과 동일. { goal:{name,target,saved,deadline,income}, ... }
-   "groups" : [{ id, name, code, members:[{ uid, name, shared:null | {goal,pct,saved,target,at} }] }] */
+   "data"   : 홈과 동일. { goal:{name,target,saved,deadline,income}, ... }  (그룹 정보는 Supabase DB) */
 const $ = (id) => document.getElementById(id);
 const won = (n) => Math.round(n).toLocaleString("ko-KR") + "원";
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
@@ -113,10 +112,6 @@ function logout() {
 }
 const user = getCurrentUser();
 if (!user) location.replace("login.html?next=group.html");
-/* 유저 아이디: 로그인 정보에 있는 아이디 계열 값을 우선 사용 */
-const myId = user ? String(user.id ?? user.userId ?? user.username ?? user.email ?? user.name) : "";
-/* 다른 사람에게는 이메일 전체 대신 @ 앞부분만 보여줘요 */
-const showId = (uid) => String(uid).split("@")[0];
 
 /* ---------- 메뉴 ---------- */
 const pages = [
@@ -131,125 +126,106 @@ $("dropdown").innerHTML = links + `<hr><button type="button" onclick="logout()">
 $("menuButton").onclick = (e) => { e.stopPropagation(); $("dropdown").classList.toggle("open"); };
 document.addEventListener("click", () => $("dropdown").classList.remove("open"));
 
-/* ---------- 그룹 데이터 ---------- */
-const getGroups = () => load("groups", []);
-const myGroup = (groups) => groups.find((g) => g.members.some((m) => m.uid === myId));
-const TOLERANCE = 0.3; // 목표금액이 ±30% 이내면 "비슷한 사람"
-const GROUP_SIZE = 5;   // 한 그룹 최대 인원(나 포함)
-/* 매칭 대기열(같은 브라우저의 다른 계정) + 예시 유저. 서버가 없어 실제 타 기기 유저는 매칭되지 않아요. */
-const SAMPLES = [
-  { uid: "sample_jisu", name: "지수", sample: true, goal: "여행 자금", target: 900000, pct: 62 },
-  { uid: "sample_minho", name: "민호", sample: true, goal: "노트북", target: 1100000, pct: 38 },
-  { uid: "sample_yuna", name: "유나", sample: true, goal: "비상금", target: 1000000, pct: 81 },
-  { uid: "sample_taeho", name: "태호", sample: true, goal: "자전거", target: 1300000, pct: 24 },
-  { uid: "sample_hana", name: "하나", sample: true, goal: "여행 자금", target: 5000000, pct: 47 },
-  { uid: "sample_doyun", name: "도윤", sample: true, goal: "보증금", target: 5500000, pct: 55 },
-  { uid: "sample_seoyeon", name: "서연", sample: true, goal: "유학 자금", target: 4600000, pct: 15 },
-  { uid: "sample_joon", name: "준", sample: true, goal: "카메라", target: 300000, pct: 90 },
-  { uid: "sample_mina", name: "미나", sample: true, goal: "콘서트", target: 280000, pct: 70 },
-  { uid: "sample_ara", name: "아라", sample: true, goal: "패드", target: 350000, pct: 33 },
-];
+/* ---------- 그룹 데이터 (Supabase) ----------
+   그룹/대기열은 Supabase DB에 저장돼 기기·사람이 달라도 매칭돼요. (테이블·함수: supabase_group.sql) */
+const sb = window.sbApp.client;
 const manwon = (n) => Math.round(n / 10000).toLocaleString("ko-KR") + "만원";
+let myUid = null;               // Supabase 로그인 사용자 id
+let st = { group: null, members: [], waiting: false };
+let notice = "";                // 화면에 띄우는 안내 문구
 
-function autoMatch() {
-  const data = load("data", null);
-  if (!hasGoal(data)) return alert("먼저 저축 목표를 설정해 주세요. (마이 탭)");
-  const goal = data.goal;
-  const near = (t) => Math.abs(t - goal.target) / goal.target <= TOLERANCE;
-  const groups = getGroups();
+const rpc = async (fn, args) => {
+  const { data, error } = await sb.rpc(fn, args);
+  if (error) {
+    console.warn(fn, error);
+    notice = /Could not find the function|does not exist|schema cache/i.test(error.message)
+      ? "그룹 기능용 DB 설정(supabase_group.sql)이 아직 적용되지 않았어요."
+      : "오류가 발생했어요: " + error.message;
+    render(); return { error };
+  }
+  return { data };
+};
+const myGoal = () => { const d = load("data", null); return hasGoal(d) ? d.goal : null; };
+const goalPct = (g) => Math.min((g.saved / g.target) * 100, 100);
+const noGroup = () => ({ group: null, members: [], waiting: false });
 
-  // 후보: 대기열의 실제 유저 + 예시 유저 중 목표금액이 비슷한 사람, 가까운 순
-  const pool = load("matchPool", []).filter((p) => p.uid !== myId && !myGroup(groups) && near(p.target));
-  const cands = pool.concat(SAMPLES.filter((p) => near(p.target)))
-    .sort((x, y) => Math.abs(x.target - goal.target) - Math.abs(y.target - goal.target))
-    .slice(0, GROUP_SIZE - 1);
-  if (cands.length < 2) return alert("목표금액이 비슷한 사람이 아직 부족해요. 잠시 후 다시 시도해 주세요.");
-
-  const pct = Math.min((goal.saved / goal.target) * 100, 100);
-  const at = new Date().toLocaleString("ko-KR");
-  const members = [{ uid: myId, name: user.name, goalAmount: goal.target,
-    shared: { goal: goal.name, pct, at } }];
-  cands.forEach((c) => members.push({ uid: c.uid, name: c.name, sample: !!c.sample, goalAmount: c.target,
-    shared: { goal: c.goal || "저축 목표", pct: c.pct ?? 0, at: c.sample ? "예시 데이터" : at } }));
-
-  const avg = members.reduce((sum, m) => sum + m.goalAmount, 0) / members.length;
-  groups.push({ id: Date.now(), name: `${manwon(avg)} 목표 저축 모임`, avgTarget: avg, members });
-  save("groups", groups);
-  // 매칭된 실제 유저는 대기열에서 제거
-  save("matchPool", load("matchPool", []).filter((p) => !members.some((m) => m.uid === p.uid)));
+async function autoMatch() {
+  const g = myGoal();
+  if (!g) { notice = "먼저 저축 목표를 설정해 주세요. (마이 탭)"; return render(); }
+  const r = await rpc("find_match", { p_target: g.target, p_goal: g.name, p_pct: goalPct(g), p_name: user.name });
+  if (r.error) return;
+  st = r.data;
+  notice = st.group ? "" : "목표금액이 비슷한 사람이 없어서 매칭이 안 됐어요. 비슷한 사람이 매칭을 시작하면 이 페이지를 다시 열었을 때 그룹이 만들어져 있어요.";
   render();
 }
-function leaveGroup() {
+async function cancelMatch() {
+  const r = await rpc("cancel_match");
+  if (r.error) return;
+  st = noGroup(); notice = ""; render();
+}
+async function leaveGroup() {
   if (!confirm("정말 그룹을 나갈까요?")) return;
-  let groups = getGroups();
-  const g = myGroup(groups);
-  if (g) g.members = g.members.filter((m) => m.uid !== myId);
-  groups = groups.filter((x) => x.members.length); // 멤버가 없으면 그룹도 삭제
-  save("groups", groups); render();
+  const r = await rpc("leave_group");
+  if (r.error) return;
+  st = noGroup(); notice = ""; render();
 }
-function shareProgress() {
-  const data = load("data", null);
-  if (!hasGoal(data)) return alert("먼저 저축 목표를 설정해 주세요. (마이 탭)");
-  const g = data.goal;
-  const groups = getGroups();
-  const me = myGroup(groups).members.find((m) => m.uid === myId);
-  me.shared = { goal: g.name, saved: g.saved, target: g.target,
-    pct: Math.min((g.saved / g.target) * 100, 100), at: new Date().toLocaleString("ko-KR") };
-  save("groups", groups); render();
+async function shareProgress() {
+  const g = myGoal();
+  if (!g) { notice = "먼저 저축 목표를 설정해 주세요. (마이 탭)"; return render(); }
+  const r = await rpc("share_progress", { p_goal: g.name, p_pct: goalPct(g) });
+  if (!r.error) { st = r.data; notice = ""; render(); }
 }
-function stopSharing() {
-  const groups = getGroups();
-  myGroup(groups).members.find((m) => m.uid === myId).shared = null;
-  save("groups", groups); render();
+async function stopSharing() {
+  const r = await rpc("stop_sharing");
+  if (!r.error) { st = r.data; notice = ""; render(); }
 }
+
 /* ---------- 화면 ---------- */
 function render() {
-  const g = myGroup(getGroups());
+  const g = st.group;
+  const msg = notice ? `<section class="card soft"><p class="muted" style="margin:0">${esc(notice)}</p></section>` : "";
 
-  // 그룹이 없을 때: 자동 매칭. 목표가 있으면 대기열에 등록해 다른 계정이 나와 매칭될 수 있게 해요.
+  // 그룹이 없을 때: 자동 매칭 (비슷한 사람이 없으면 안내 메시지)
   if (!g) {
-    const d = load("data", null);
-    if (d && d.goal) {
-      const pool = load("matchPool", []).filter((p) => p.uid !== myId);
-      pool.push({ uid: myId, name: user.name, goal: d.goal.name, target: d.goal.target,
-        pct: Math.min((d.goal.saved / d.goal.target) * 100, 100) });
-      save("matchPool", pool);
-    }
     $("welcome").textContent = "그룹";
-    $("content").innerHTML = `
-      <section class="card soft"><p class="muted">아직 참여한 그룹이 없어요.</p></section>
+    $("content").innerHTML = msg + `
       <section class="card">
         <h3>목표가 비슷한 사람과 자동 매칭</h3>
         <p class="muted">내 목표금액의 ±30% 안에 있는 사람들과 자동으로 그룹이 만들어져요. 그룹에서는 금액이 아닌 달성률만 비교해요.</p>
-        <div class="actions"><button class="btn" onclick="autoMatch()">자동 매칭 시작</button></div>
+        <div class="actions">
+          <button class="btn" onclick="autoMatch()">${st.waiting ? "다시 매칭하기" : "자동 매칭 시작"}</button>
+          ${st.waiting ? '<button class="btn ghost" onclick="cancelMatch()">대기 취소</button>' : ""}
+        </div>
+        ${st.waiting && !notice ? '<p class="muted">매칭 대기 중이에요. 비슷한 사람이 나타나면 그룹이 만들어져요.</p>' : ""}
       </section>`;
     return;
   }
 
-  const me = g.members.find((m) => m.uid === myId);
+  const me = st.members.find((m) => m.user_id === myUid) || {};
   $("welcome").textContent = g.name;
 
-  const members = g.members.map((m) => {
-    const s = m.shared;
-    const isMe = m.uid === myId;
+  const members = st.members.map((m) => {
+    const shared = m.shared_pct !== null && m.shared_pct !== undefined;
+    const isMe = m.user_id === myUid;
     return `<div class="member">
       <div class="row">
-        <span><span class="uid">@${esc(showId(m.uid))}</span>${isMe ? '<span class="tag">나</span>' : ""}${m.sample ? '<span class="tag">예시</span>' : ""}
+        <span><span class="uid">@${esc(m.uid)}</span>${isMe ? '<span class="tag">나</span>' : ""}
           <span class="muted"> ${esc(m.name)}</span></span>
-        ${s ? `<b>${s.pct.toFixed(1)}%</b>` : '<span class="muted">미공유</span>'}
+        ${shared ? `<b>${Number(m.shared_pct).toFixed(1)}%</b>` : '<span class="muted">미공유</span>'}
       </div>
-      ${s ? `
-        <div class="progress"><i style="width:${s.pct}%"></i></div>
-        <div class="row"><span class="muted">${esc(s.goal)}</span>
-          <span class="muted">${esc(s.at)}</span></div>`
+      ${shared ? `
+        <div class="progress"><i style="width:${Number(m.shared_pct)}%"></i></div>
+        <div class="row"><span class="muted">${esc(m.shared_goal || "")}</span>
+          <span class="muted">${esc(new Date(m.shared_at).toLocaleString("ko-KR"))}</span></div>`
         : '<div class="empty">아직 달성현황을 공유하지 않았어요.</div>'}
     </div>`;
   }).join("");
 
-  $("content").innerHTML = `
+  const meShared = me.shared_pct !== null && me.shared_pct !== undefined;
+  $("content").innerHTML = msg + `
     <section class="card soft">
-      <div class="row"><span class="muted">멤버 ${g.members.length}명</span>
-        <span class="muted">목표금액 평균 ${manwon(g.avgTarget)} 전후</span></div>
+      <div class="row"><span class="muted">멤버 ${st.members.length}명</span>
+        <span class="muted">목표금액 평균 ${manwon(g.avg_target)} 전후</span></div>
       <div class="actions">
         <button class="btn danger" onclick="leaveGroup()">그룹 나가기</button>
       </div>
@@ -259,8 +235,8 @@ function render() {
       <h3>내 달성현황 공유</h3>
       <p class="muted">홈에 표시되는 저축 목표 달성률을 그룹 멤버에게 보여줘요.</p>
       <div class="actions">
-        <button class="btn" onclick="shareProgress()">${me.shared ? "현황 새로 공유" : "달성현황 공유하기"}</button>
-        ${me.shared ? '<button class="btn ghost" onclick="stopSharing()">공유 중지</button>' : ""}
+        <button class="btn" onclick="shareProgress()">${meShared ? "현황 새로 공유" : "달성현황 공유하기"}</button>
+        ${meShared ? '<button class="btn ghost" onclick="stopSharing()">공유 중지</button>' : ""}
       </div>
     </section>
 
@@ -269,7 +245,20 @@ function render() {
       ${members}
     </section>`;
 }
-if (user) render();
+
+/* ---------- 시작: 로그인 세션 확인 후 내 그룹 불러오기 ---------- */
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { // 서버 세션이 없으면 다시 로그인
+    try { localStorage.removeItem("currentUser"); sessionStorage.removeItem("currentUser"); } catch {}
+    location.replace("login.html?next=group.html"); return;
+  }
+  myUid = session.user.id;
+  const r = await rpc("my_group_state");
+  if (!r.error) st = r.data;
+  render();
+}
+if (user) init();
 </script>
 </body>
 </html>
