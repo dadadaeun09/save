@@ -58,7 +58,7 @@ const SYSTEM_PROMPT = `
 
 // 모델마다 무료 사용량이 따로라서, 한도(429)가 차면 다음 모델로 넘어가고
 // 구글 서버가 바쁠 때(503)만 잠깐 기다렸다가 다시 시도합니다.
-const MODELS = ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite", "gemini-3.8-flash"];
+const MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.8-flash"];
 async function generate(contents) {
   let lastErr;
   for (const model of MODELS) {
