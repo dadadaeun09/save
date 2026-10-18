@@ -33,6 +33,7 @@
   --focus: rgba(0, 0, 0, 0.14);
   --page-base: #c7c7cc;
   --bar: rgba(246, 246, 248, 0.55);            /* 상단바 바탕: 연하고 반투명 */
+  --field-solid: #f6f6f8;                      /* 불투명 입력칸 바탕 */
   --pill: rgba(244, 244, 246, 0.08);           /* 하단 이동바 바탕: 아주 투명해서 뒤의 칸이 비쳐요 */
   --pill-active: rgba(255, 255, 255, 0.45);
   --menu-bg: rgba(246, 246, 248, 0.90);        /* 석 삼 자 목차 바탕: 90% 불투명 */    /* 하단 이동바에서 지금 보는 칸 */
@@ -63,6 +64,7 @@
     --track: rgba(255, 255, 255, 0.14); --focus: rgba(255, 255, 255, 0.22);
     --page-base: #141416;
     --bar: rgba(27, 27, 30, 0.55);
+    --field-solid: #2a2a2e;
     --menu-bg: rgba(34, 34, 38, 0.90);
     --pill: rgba(34, 34, 38, 0.08); --pill-active: rgba(255, 255, 255, 0.20);
     --blob-1: rgba(120, 120, 130, 0.45); --blob-2: rgba(70, 70, 78, 0.55);
@@ -319,3 +321,11 @@ body:has(> .site-footer.floating) { display: flex; flex-direction: column; align
 /* 푸터가 하단 이동바 위를 덮어서 클릭을 가로채지 않게, 이동바를 푸터보다 항상 위에 둬요 */
 nav#tabbar, .bottom-bar { z-index: 50; }
 nav#tabbar .inner { z-index: 50; }
+
+/* ---------- AI 채팅 입력칸: 불투명 100% (뒤의 말풍선이 비치지 않아요) ---------- */
+#chatinput {
+  background: var(--field-solid);
+  border: 1px solid var(--hair);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+#chatinput:focus { background: var(--field-solid); }
