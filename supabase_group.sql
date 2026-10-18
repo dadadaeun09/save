@@ -174,3 +174,15 @@ revoke all on function public.my_group_state(), public.find_match(numeric, text,
 grant execute on function public.my_group_state(), public.find_match(numeric, text, numeric, text),
   public.cancel_match(), public.share_progress(text, numeric), public.leave_group()
   to authenticated;
+
+-- 이름 변경을 그룹/대기열에도 반영 (마이 페이지에서 이름을 바꾸면 호출)
+create or replace function public.set_my_name(p_name text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'login required'; end if;
+  update group_members set name = left(p_name, 30) where user_id = auth.uid();
+  update match_queue   set name = left(p_name, 30) where user_id = auth.uid();
+  return my_group_state();
+end $$;
+revoke all on function public.set_my_name(text) from public, anon;
+grant execute on function public.set_my_name(text) to authenticated;

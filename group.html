@@ -169,7 +169,15 @@ const ping = () => { if (chan) chan.send({ type: "broadcast", event: "changed", 
 let syncing = false;
 async function syncMyProgress() {
   const me = st.members.find((m) => m.user_id === myUid), g = myGoal();
-  if (!st.group || !me || !g || syncing) return;
+  if (!st.group || !me || syncing) return;
+  const cu = getCurrentUser();                          // 다른 탭(마이 페이지)에서 바꾼 최신 이름
+  if (cu && cu.name && me.name !== cu.name) {
+    syncing = true;
+    const r = await rpc("set_my_name", { p_name: cu.name });
+    syncing = false;
+    if (!r.error) { st = r.data; ping(); }
+  }
+  if (!g) return;
   const pct = goalPct(g);
   const same = me.shared_pct !== null && Math.abs(Number(me.shared_pct) - pct) < 0.05 && me.shared_goal === g.name.slice(0, 40);
   if (same) return;
@@ -179,6 +187,7 @@ async function syncMyProgress() {
   if (!r.error) { st = r.data; ping(); }
 }
 async function refresh() {
+  if (await sbApp.checkIdentity()) return;           // 다른 탭에서 다른 계정으로 로그인했으면 이 탭도 맞춤
   const r = await rpc("my_group_state");
   if (r.error) return;
   st = r.data;
@@ -191,7 +200,7 @@ async function refresh() {
 async function autoMatch() {
   const g = myGoal();
   if (!g) { notice = "먼저 저축 목표를 설정해 주세요. (마이 탭)"; return render(true); }
-  const r = await rpc("find_match", { p_target: g.target, p_goal: g.name, p_pct: goalPct(g), p_name: user.name });
+  const r = await rpc("find_match", { p_target: g.target, p_goal: g.name, p_pct: goalPct(g), p_name: (getCurrentUser() || user).name });
   if (r.error) return;
   st = r.data;
   notice = st.group ? "" : "목표금액이 비슷한 사람이 없어서 매칭이 안 됐어요. 대기열에 등록해 두었으니 비슷한 사람이 나타나면 자동으로 그룹이 만들어져요.";

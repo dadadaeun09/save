@@ -38,6 +38,21 @@
     if (this === localStorage && k === DATA_KEY) { clearTimeout(timer); timer = setTimeout(push, 400); }
   };
 
+  // 같은 브라우저의 다른 탭에서 다른 계정으로 로그인하면 서버 세션은 하나뿐이라 이 탭과 어긋나요.
+  // 그럴 땐 이 탭의 계정 표시를 지금 로그인된 계정으로 맞추고 새로고침해요. (그룹·데이터가 계정마다 따로 보이게)
+  const emailOf = (u) => String((u && u.email) || "").trim().toLowerCase();
+  async function checkIdentity() {
+    const { data: { session } } = await client.auth.getSession();
+    const cu = currentUser();
+    if (!session || !cu || emailOf(cu) === emailOf(session.user)) return false;
+    const meta = session.user.user_metadata || {};
+    const next = { email: session.user.email, name: meta.name || String(session.user.email).split("@")[0] };
+    const store = sessionStorage.getItem("currentUser") ? sessionStorage : localStorage;
+    rawSet.call(store, "currentUser", JSON.stringify(next));
+    location.reload();
+    return true;
+  }
+
   // 페이지를 열 때 DB의 최신 데이터를 가져옴 (다르면 한 번 새로고침해서 반영)
   async function pull() {
     const { data: { session } } = await client.auth.getSession();
@@ -47,6 +62,7 @@
       localStorage.removeItem(DATA_KEY);
       return;
     }
+    if (await checkIdentity()) return;
     const { data: row, error } = await client.from("user_data").select("data").maybeSingle();
     if (error) return console.warn("데이터 불러오기 실패", error.message);
     const cloud = row && row.data && Object.keys(row.data).length ? row.data : null;
@@ -60,6 +76,6 @@
     sessionStorage.removeItem("sbReloaded"); // 반영이 끝났으니 다음 방문을 위해 표시를 지움
   }
 
-  window.sbApp = { client, currentUser, pull };
+  window.sbApp = { client, currentUser, pull, checkIdentity };
   pull().catch((e) => console.warn(e));
 })();

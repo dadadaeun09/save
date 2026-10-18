@@ -378,6 +378,7 @@ $("name-form").onsubmit = async (e) => {
     user.name = v;
     const store = sessionStorage.getItem("currentUser") ? sessionStorage : localStorage;
     store.setItem("currentUser", JSON.stringify(user));
+    sbApp.client.rpc("set_my_name", { p_name: v }).then(() => {}, () => {}); // 그룹 멤버 화면에도 반영 (그룹 없으면 무시)
   }
   if (pendingPhoto !== undefined) { if (pendingPhoto) data.profile.photo = pendingPhoto; else delete data.profile.photo; }
   if (age === "") delete data.profile.age; else data.profile.age = age;
