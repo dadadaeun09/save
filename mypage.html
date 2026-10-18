@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>마이 페이지 · 저축 앱</title>
+<title>SPENDICT - My Page</title>
 <style>
   :root {
     --bg: #fff; --card: #fff; --text: #5a9e78; --muted: #8a9a91; --line: #cfe9da;
@@ -106,14 +106,14 @@
 
   <!-- 마이 페이지 메인 -->
   <section id="view-main">
-    <div class="head"><h2>마이 페이지</h2></div>
+    <div class="head"><h2>My Page</h2></div>
 
     <div class="card">
       <div class="profile">
         <div class="avatar" id="avatar"></div>
         <div style="flex:1;min-width:0">
           <div class="name" id="user-name"></div>
-          <div class="muted">사용자 이름</div>
+          <div class="muted">User Name</div>
           <div class="profile-sub" id="profile-sub" hidden></div>
         </div>
         <button class="btn ghost small" id="name-edit-btn">수정</button>
@@ -127,53 +127,53 @@
             <input type="file" id="photo-file" accept="image/*" hidden />
           </div>
         </div>
-        <label><span>이름 <span class="req">*</span></span>
+        <label><span>Name <span class="req">*</span></span>
           <input id="name-input" maxlength="20" placeholder="이름 입력" />
         </label>
-        <label><span>나이 <span class="opt">(선택)</span></span>
-          <input id="age-input" type="number" inputmode="numeric" min="1" max="120" step="1" placeholder="예: 25" />
+        <label><span>Age <span class="opt">(선택)</span></span>
+          <input id="age-input" type="number" inputmode="numeric" min="1" max="120" step="1" placeholder="ex: 25" />
         </label>
-        <label><span>직업 <span class="opt">(선택)</span></span>
-          <input id="job-input" maxlength="30" placeholder="예: 대학생, 회사원, 프리랜서" />
+        <label><span>Job <span class="opt">(선택)</span></span>
+          <input id="job-input" maxlength="30" placeholder="ex: 대학생, 회사원, 프리랜서" />
         </label>
         <p class="error" id="profile-error" hidden></p>
         <div class="form-actions">
-          <button class="btn small" type="submit">저장</button>
-          <button class="btn ghost small" type="button" id="profile-cancel">취소</button>
+          <button class="btn small" type="submit">save</button>
+          <button class="btn ghost small" type="button" id="profile-cancel">cancel</button>
         </div>
       </form>
     </div>
 
     <div class="card flush">
       <button class="item" data-go="goal">
-        <span>저축 목표 설정<span class="sub" id="sub-goal"></span></span><span class="chev">›</span>
+        <span>Setting saving goal<span class="sub" id="sub-goal"></span></span><span class="chev">›</span>
       </button>
       <button class="item" data-go="income">
-        <span>소득 수준 설정 <span class="opt">(선택)</span><span class="sub" id="sub-income"></span></span><span class="chev">›</span>
+        <span>Setting income level<span class="opt">(선택)</span><span class="sub" id="sub-income"></span></span><span class="chev">›</span>
       </button>
       <button class="item" data-go="fixed">
-        <span>매달 고정 지출 <span class="opt">(선택)</span><span class="sub" id="sub-fixed"></span></span><span class="chev">›</span>
+        <span>Monthly fixed expenses<span class="opt">(선택)</span><span class="sub" id="sub-fixed"></span></span><span class="chev">›</span>
       </button>
       <button class="item" data-go="held">
-        <span>구매 보류 품목<span class="sub" id="sub-held"></span></span>
+        <span>Holding items<span class="sub" id="sub-held"></span></span>
         <span><span class="badge" id="held-badge"></span><span class="chev">›</span></span>
       </button>
     </div>
 
     <div class="card flush">
-      <button class="item" id="reset-data"><span>저축 데이터 초기화<span class="sub">현재 저축액, 아낀 금액, 충동구매를 0원으로 되돌려요</span></span></button>
-      <button class="item" id="logout">로그아웃</button>
+      <button class="item" id="reset-data"><span>Reset<span class="sub">현재 저축액, 아낀 금액, 충동구매를 0원으로 되돌려요</span></span></button>
+      <button class="item" id="logout">Sign Out</button>
       <button class="item danger" id="withdraw">회원 탈퇴</button>
     </div>
   </section>
 
   <!-- 저축 목표 설정 -->
   <section id="view-goal" hidden>
-    <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>저축 목표 설정</h2></div>
+    <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>Setting saving goal</h2></div>
     <div class="card">
       <form class="stack" id="goal-form" novalidate>
-        <label>저축 목적 <span class="req">*</span>
-          <input name="name" maxlength="30" placeholder="예: 유럽 여행, 노트북 구매" />
+        <label>Saving goal <span class="req">*</span>
+          <input name="name" maxlength="30" placeholder="ex: 유럽 여행, 노트북 구매" />
         </label>
         <label>목표 금액 (원) <span class="req">*</span>
           <input name="target" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 3000000" />
@@ -181,16 +181,16 @@
         <label>목표 기한 <span class="opt">(선택)</span>
           <input name="deadline" type="date" />
         </label>
-        <p class="muted" style="margin:0">기한을 비워 두면 월 소득의 20%를 저축한다고 가정해 계산합니다.</p>
+        <p class="muted" style="margin:0">기한을 비워 두면 월 소득의 20% 기준으로 계산합니다.</p>
         <p class="error" id="goal-error" hidden></p>
-        <button class="btn" type="submit">저장</button>
+        <button class="btn" type="submit">Save</button>
       </form>
     </div>
   </section>
 
   <!-- 소득 수준 설정 -->
   <section id="view-income" hidden>
-    <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>소득 수준 설정</h2></div>
+    <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>Setting income level</h2></div>
     <div class="card">
       <form class="stack" id="income-form" novalidate>
         <label>이번 달 소득 (원) <span class="opt">(선택)</span>
@@ -198,25 +198,25 @@
         </label>
         <p class="muted" style="margin:0">현재 월에 버는 금액을 입력하세요. AI가 구매 금액을 근무 시간으로 환산할 때 사용합니다.</p>
         <p class="error" id="income-error" hidden></p>
-        <button class="btn" type="submit">저장</button>
+        <button class="btn" type="submit">Save</button>
       </form>
     </div>
   </section>
 
   <!-- 매달 고정 지출 -->
   <section id="view-fixed" hidden>
-    <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>매달 고정 지출 <span class="opt">(선택)</span></h2></div>
+    <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>Monthly fixed expenses <span class="opt">(선택)</span></h2></div>
     <p class="muted" style="margin-top:0">월세, 생활비, 통신비, 보험료처럼 매달 꼭 나가는 돈을 적어 두세요. 입력하지 않아도 괜찮고, 항목을 추가할 때만 이름과 금액을 함께 적어 주세요.</p>
     <div class="card">
       <form class="stack" id="fixed-form" novalidate>
-        <label>항목
-          <input name="name" maxlength="30" placeholder="예: 월세, 식비, 통신비" />
+        <label>List
+          <input name="name" maxlength="30" placeholder="ex: 월세, 식비, 통신비" />
         </label>
         <label>매달 금액 (원)
-          <input name="amount" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 500000" />
+          <input name="amount" type="number" inputmode="numeric" min="1" step="1" placeholder="ex: 500000" />
         </label>
         <p class="error" id="fixed-error" hidden></p>
-        <button class="btn" type="submit">추가</button>
+        <button class="btn" type="submit">Add</button>
       </form>
     </div>
     <div class="card" id="fixed-card"></div>
@@ -224,8 +224,8 @@
 
   <!-- 구매 보류 품목 -->
   <section id="view-held" hidden>
-    <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>구매 보류 품목</h2></div>
-    <p class="muted" style="margin-top:0">AI 채팅에서 설득에도 구매를 보류하기로 한 품목입니다.</p>
+    <div class="head"><button class="back" data-go="main" aria-label="뒤로">‹</button><h2>Holding items</h2></div>
+    <p class="muted" style="margin-top:0">AI 채팅에서 설득에 실패해 구매를 보류하기로 한 품목입니다.</p>
     <div class="card" id="held-card"></div>
   </section>
 
