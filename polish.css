@@ -302,8 +302,8 @@ nav#tabbar a:hover:not(.active) {
    기능은 건드리지 않고 색과 모양만 덧입혀요. 이 블록을 지우면 이전 디자인으로 돌아가요.
    ========================================================= */
 :root {
-  --g-ink: #2c6a49;            /* 기본 글자: 잔디 위에서도 잘 읽히는 진한 초록 */
-  --g-ink-soft: #5d7e69;       /* 보조 글자 */
+  --g-ink: #265f40;            /* 기본 글자: 잔디 위에서도 잘 읽히는 진한 초록 */
+  --g-ink-soft: #46695a;       /* 보조 글자 */
   --g-heading: #2a7a50;        /* 제목 */
   --g-glass: rgba(255, 255, 255, 0.42);
   --g-glass-strong: rgba(255, 255, 255, 0.62);
@@ -316,16 +316,16 @@ nav#tabbar a:hover:not(.active) {
 body {
   color: var(--g-ink);
   background:
-    radial-gradient(60% 40% at 12% 8%, rgba(255, 255, 255, 0.60), transparent 62%),
-    radial-gradient(50% 40% at 92% 28%, rgba(168, 222, 132, 0.55), transparent 62%),
-    radial-gradient(60% 50% at 25% 96%, rgba(150, 210, 125, 0.50), transparent 62%),
-    #dcefc8;
+    radial-gradient(60% 40% at 12% 8%, rgba(255, 255, 255, 0.38), transparent 62%),
+    radial-gradient(50% 40% at 92% 28%, rgba(110, 185, 85, 0.60), transparent 62%),
+    radial-gradient(60% 50% at 25% 96%, rgba(95, 170, 80, 0.55), transparent 62%),
+    #b4d98f;
   background-attachment: fixed;
 }
 h2, h3, .card h3 { color: var(--g-heading); }
 .muted, .profile-sub { color: var(--g-ink-soft); }
 .big { color: #2e8656; }
-::placeholder { color: #86a393; }
+::placeholder { color: #6f9280; }
 
 /* ----- 유리 칸 (카드) ----- */
 .card, .box {
