@@ -30,7 +30,7 @@
           data.resisted.push({ item: name, amount: price, date: todayStr() });
           aiSay(`합리적인 판단입니다. ${won(price)}을 지켰습니다. 누적 아낀 금액에 반영했습니다.`);
         } else if (kind === "hold") {
-          aiSay("보류로 기록했습니다. 일정 기간 뒤에 다시 필요한지 확인하겠습니다. (알림 기능은 추후 구현)");
+          aiSay("보류로 기록했습니다. 3일 뒤에 다시 알림 드리겠습니다.");
         } else {
           data.impulse.push({ item: name, amount: price, date: todayStr() });
           aiSay("설득에 실패했습니다. 이 구매는 충동구매로 기록되어 월말 정산에 표시됩니다.");
