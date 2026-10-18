@@ -32,9 +32,9 @@
   --track: rgba(255, 255, 255, 0.55);          /* 진행 막대 바탕 */
   --focus: rgba(0, 0, 0, 0.14);
   --page-base: #c7c7cc;
-  --bar: #a6a6ae;                              /* 상단바 바탕(불투명) */
-  --pill: rgba(244, 244, 246, 0.94);           /* 하단 이동바 바탕: 거의 불투명 */
-  --pill-active: #ffffff;                      /* 하단 이동바에서 지금 보는 칸 */
+  --bar: rgba(246, 246, 248, 0.55);            /* 상단바 바탕: 연하고 반투명 */
+  --pill: rgba(244, 244, 246, 0.40);           /* 하단 이동바 바탕: 투명해서 뒤의 칸이 비쳐요 */
+  --pill-active: rgba(255, 255, 255, 0.78);    /* 하단 이동바에서 지금 보는 칸 */
   --blob-1: rgba(255, 255, 255, 0.95);
   --blob-2: rgba(110, 110, 118, 0.50);
   --blob-3: rgba(80, 80, 88, 0.42);
@@ -61,8 +61,8 @@
     --hl: inset 0 1px 1px rgba(255, 255, 255, 0.28), inset 0 -1px 1px rgba(255, 255, 255, 0.05);
     --track: rgba(255, 255, 255, 0.14); --focus: rgba(255, 255, 255, 0.22);
     --page-base: #141416;
-    --bar: #101012;
-    --pill: rgba(34, 34, 38, 0.94); --pill-active: rgba(255, 255, 255, 0.20);
+    --bar: rgba(27, 27, 30, 0.55);
+    --pill: rgba(34, 34, 38, 0.40); --pill-active: rgba(255, 255, 255, 0.20);
     --blob-1: rgba(120, 120, 130, 0.45); --blob-2: rgba(70, 70, 78, 0.55);
     --blob-3: rgba(50, 50, 56, 0.6); --blob-4: rgba(100, 100, 110, 0.25);
   }
@@ -166,9 +166,9 @@ ul.list li, .member, .item, .item + .item, .held, .row + .row { border-color: va
 
 /* ---------- 상단바, 펼침 메뉴 ---------- */
 .topbar, .navbar {
-  background: var(--bar);             /* 불투명 100%: 뒤가 비치지 않아요 */
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+  background: var(--bar);             /* 연하고 반투명: 뒤가 은은하게 비쳐요 */
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  backdrop-filter: blur(18px) saturate(170%);
   border-bottom: 1px solid var(--hair);
   box-shadow: var(--shadow-sm);
 }
@@ -209,8 +209,8 @@ nav#tabbar .inner {
   padding: 6px;
   background-color: var(--pill);
   background-image: linear-gradient(180deg, var(--sheen), transparent 70%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
-  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);   /* 흐림을 줄여서 뒤의 칸 모양이 보여요 */
+  backdrop-filter: blur(10px) saturate(160%);
   border: 1px solid var(--rim);
   border-radius: 999px;
   box-shadow: var(--hl), 0 12px 34px rgba(0, 0, 0, 0.20), 0 0 0 0.5px var(--hair);
