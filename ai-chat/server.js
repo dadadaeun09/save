@@ -56,21 +56,27 @@ const SYSTEM_PROMPT = `
 매 답변 마지막 줄에 반드시 [판정:대화중] / [판정:승인] / [판정:거절] 중 하나를 붙여.
 `;
 
-// 구글 서버가 바쁠 때(503, 429) 잠깐 기다렸다가 최대 3번 다시 시도
-const MODEL = "gemini-3.8-flash";
+// 모델마다 무료 사용량이 따로라서, 한도(429)가 차면 다음 모델로 넘어가고
+// 구글 서버가 바쁠 때(503)만 잠깐 기다렸다가 다시 시도합니다.
+const MODELS = ["gemini-3.8-flash", "gemini-2.5-flash-lite", "gemini-3.1-flash-lite"];
 async function generate(contents) {
   let lastErr;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      return await ai.models.generateContent({
-        model: MODEL,
-        contents,
-        config: { systemInstruction: SYSTEM_PROMPT },
-      });
-    } catch (err) {
-      lastErr = err;
-      if (err.status !== 503 && err.status !== 429) throw err;
-      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+  for (const model of MODELS) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        return await ai.models.generateContent({
+          model,
+          contents,
+          config: { systemInstruction: SYSTEM_PROMPT },
+        });
+      } catch (err) {
+        lastErr = err;
+        if (err.status === 503 && attempt === 0) {
+          await new Promise((r) => setTimeout(r, 1500));
+          continue;
+        }
+        break;
+      }
     }
   }
   throw lastErr;
@@ -98,6 +104,7 @@ app.post("/api/chat", async (req, res) => {
     res.json({ reply, verdict });
   } catch (err) {
     console.error(err);
+    if (err.status === 429) return res.status(429).json({ error: "오늘 AI 사용량을 모두 사용했습니다. 잠시 후 다시 시도해 주세요." });
     res.status(500).json({ error: "AI 호출 실패" });
   }
 });
