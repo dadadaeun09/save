@@ -307,8 +307,9 @@ nav#tabbar .inner span { display: none; }
 .site-footer p { margin: 0; }
 .site-footer a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .site-footer a:hover { color: var(--ink); }
-.site-footer.floating { position: fixed; left: 0; right: 0; bottom: 10px; margin: 0; padding: 0 16px; border: 0; pointer-events: none; }
-.site-footer.floating a { pointer-events: auto; }
+/* 로그인 화면: 카드 바로 아래에 흐름대로 놓아요 (화면에 고정하면 카드와 겹쳐요) */
+.site-footer.floating { position: static; width: 100%; max-width: 380px; margin: 20px 0 0; padding: 0 16px; border: 0; }
+body:has(> .site-footer.floating) { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
 /* index.html(AI 채팅)과 마이 페이지는 내용이 짧아도 푸터가 화면 맨 아래로 내려가게 해요 */
 #app { display: flex; flex-direction: column; }
