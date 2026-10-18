@@ -34,7 +34,8 @@
   --page-base: #c7c7cc;
   --bar: rgba(246, 246, 248, 0.55);            /* 상단바 바탕: 연하고 반투명 */
   --pill: rgba(244, 244, 246, 0.08);           /* 하단 이동바 바탕: 아주 투명해서 뒤의 칸이 비쳐요 */
-  --pill-active: rgba(255, 255, 255, 0.45);    /* 하단 이동바에서 지금 보는 칸 */
+  --pill-active: rgba(255, 255, 255, 0.45);
+  --menu-bg: rgba(246, 246, 248, 0.90);        /* 석 삼 자 목차 바탕: 90% 불투명 */    /* 하단 이동바에서 지금 보는 칸 */
   --blob-1: rgba(255, 255, 255, 0.95);
   --blob-2: rgba(110, 110, 118, 0.50);
   --blob-3: rgba(80, 80, 88, 0.42);
@@ -62,6 +63,7 @@
     --track: rgba(255, 255, 255, 0.14); --focus: rgba(255, 255, 255, 0.22);
     --page-base: #141416;
     --bar: rgba(27, 27, 30, 0.55);
+    --menu-bg: rgba(34, 34, 38, 0.90);
     --pill: rgba(34, 34, 38, 0.08); --pill-active: rgba(255, 255, 255, 0.20);
     --blob-1: rgba(120, 120, 130, 0.45); --blob-2: rgba(70, 70, 78, 0.55);
     --blob-3: rgba(50, 50, 56, 0.6); --blob-4: rgba(100, 100, 110, 0.25);
@@ -176,7 +178,7 @@ ul.list li, .member, .item, .item + .item, .held, .row + .row { border-color: va
 .menu-button span { background: var(--ink); }
 .menu-button:hover { background: var(--glass-strong); }
 .dropdown {
-  background: var(--glass-strong);
+  background: var(--menu-bg);
   -webkit-backdrop-filter: var(--blur);
   backdrop-filter: var(--blur);
   border: 1px solid var(--rim);
