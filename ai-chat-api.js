@@ -104,6 +104,7 @@
       box.appendChild(b);
     }
     el.appendChild(box);
+    if (window.scrollChatToEnd && el === chatlog.lastElementChild) scrollChatToEnd(el); // 버튼이 붙어 커진 만큼 다시 맞춰요
   }
 
   // ---------- 저장된 대화 복원 ----------
@@ -145,6 +146,7 @@
       resolve("계속 보류", () => { h.remindAt = addDays(REMIND_DAYS); aiSay(`보류를 연장했습니다. ${REMIND_DAYS}일 뒤에 다시 알림 드리겠습니다.`); });
       resolve("그래도 구매", () => { drop(); data.impulse.push({ item: h.item, amount: h.amount, date: todayStr() }); aiSay("충동구매로 기록되어 월말 정산에 표시됩니다."); });
       el.appendChild(box);
+      if (window.scrollChatToEnd && el === chatlog.lastElementChild) scrollChatToEnd(el);
     }
   }
 
