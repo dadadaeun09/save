@@ -293,3 +293,6 @@ nav#tabbar .inner span { display: none; }
 .dropdown a, .dropdown button { display: block; width: 100%; padding: 10px 12px; border: 0; background: none; text-align: left; font: inherit; cursor: pointer; text-decoration: none; }
 .dropdown hr { border: 0; border-top: 1px dashed var(--hair); margin: 6px 0; }
 .logo { text-decoration: none; }
+
+/* ----- 상단바: 화면 맨 위에 붙어 따라다니지 않고, 페이지를 내리면 같이 올라가요 ----- */
+.topbar, .navbar { position: relative; top: auto; }   /* relative: 펼침 메뉴(.dropdown)가 상단바 기준으로 열리게 */
