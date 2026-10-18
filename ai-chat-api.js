@@ -128,6 +128,8 @@
       return r;
     };
   }
+  // 서버가 잠들어 있으면 미리 깨워 둠 (질문을 입력하는 동안 깨어남)
+  fetch(AI_API_URL + "/", { mode: "no-cors" }).catch(() => {});
   const chatPage = document.getElementById("page-chat");
   if (chatPage && !chatPage.hidden) remindDue();
 
