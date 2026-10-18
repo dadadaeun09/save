@@ -92,6 +92,12 @@
 <body>
 
 <!-- ================= 메인 앱 ================= -->
+<header class="topbar">
+  <a class="logo" href="home.html">SPENDICT</a>
+  <button class="menu-button" id="menuButton" aria-label="메뉴 열기"><span></span><span></span><span></span></button>
+  <div class="dropdown" id="dropdown"></div>
+</header>
+
 <div id="app">
 
   <!-- 홈 -->
@@ -158,6 +164,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="supabase.js"></script>
+<script src="topbar.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const won = (n) => Math.round(n).toLocaleString("ko-KR") + "원";

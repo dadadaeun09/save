@@ -32,6 +32,7 @@
   --track: rgba(255, 255, 255, 0.55);          /* 진행 막대 바탕 */
   --focus: rgba(0, 0, 0, 0.14);
   --page-base: #c7c7cc;
+  --bar: #ececef;                              /* 상단바 바탕(불투명) */
   --blob-1: rgba(255, 255, 255, 0.95);
   --blob-2: rgba(110, 110, 118, 0.50);
   --blob-3: rgba(80, 80, 88, 0.42);
@@ -58,6 +59,7 @@
     --hl: inset 0 1px 1px rgba(255, 255, 255, 0.28), inset 0 -1px 1px rgba(255, 255, 255, 0.05);
     --track: rgba(255, 255, 255, 0.14); --focus: rgba(255, 255, 255, 0.22);
     --page-base: #141416;
+    --bar: #1b1b1e;
     --blob-1: rgba(120, 120, 130, 0.45); --blob-2: rgba(70, 70, 78, 0.55);
     --blob-3: rgba(50, 50, 56, 0.6); --blob-4: rgba(100, 100, 110, 0.25);
   }
@@ -161,10 +163,10 @@ ul.list li, .member, .item, .item + .item, .held, .row + .row { border-color: va
 
 /* ---------- 상단바, 펼침 메뉴 ---------- */
 .topbar, .navbar {
-  background: var(--glass);
-  -webkit-backdrop-filter: var(--blur);
-  backdrop-filter: var(--blur);
-  border-bottom: 1px solid var(--rim);
+  background: var(--bar);             /* 불투명 100%: 뒤가 비치지 않아요 */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-bottom: 1px solid var(--hair);
   box-shadow: var(--shadow-sm);
 }
 .logo { letter-spacing: -0.04em; color: var(--ink); }
@@ -281,3 +283,13 @@ nav#tabbar .inner span { display: none; }
 }
 .logo { font-size: 20px; }
 .box h1 { font-size: 26px; margin-bottom: 12px; text-indent: 0.22em; }  /* 글자 간격 때문에 오른쪽으로 쏠리는 것을 바로잡아요 */
+
+/* ---------- 상단바 공통 배치: 앱 이름 + 석 삼 자 메뉴 (모든 페이지 같은 모양) ---------- */
+.topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; }
+.menu-button { width: 40px; height: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; padding: 0; border: 0; border-radius: 10px; background: none; cursor: pointer; }
+.menu-button span { display: block; width: 22px; height: 3px; border-radius: 2px; }
+.dropdown { display: none; position: absolute; top: 100%; right: 16px; min-width: 160px; padding: 8px; z-index: 30; }
+.dropdown.open { display: block; }
+.dropdown a, .dropdown button { display: block; width: 100%; padding: 10px 12px; border: 0; background: none; text-align: left; font: inherit; cursor: pointer; text-decoration: none; }
+.dropdown hr { border: 0; border-top: 1px dashed var(--hair); margin: 6px 0; }
+.logo { text-decoration: none; }
