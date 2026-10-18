@@ -376,8 +376,8 @@ $("name-form").onsubmit = async (e) => {
     const { error } = await sbApp.client.auth.updateUser({ data: { name: v } });
     if (error) return fail("이름 변경에 실패했어요.");
     user.name = v;
-    const store = sessionStorage.getItem("currentUser") ? sessionStorage : localStorage;
-    store.setItem("currentUser", JSON.stringify(user));
+    sessionStorage.setItem("currentUser", JSON.stringify(user));
+    if (localStorage.getItem("currentUser")) localStorage.setItem("currentUser", JSON.stringify(user));
     sbApp.client.rpc("set_my_name", { p_name: v }).then(() => {}, () => {}); // 그룹 멤버 화면에도 반영 (그룹 없으면 무시)
   }
   if (pendingPhoto !== undefined) { if (pendingPhoto) data.profile.photo = pendingPhoto; else delete data.profile.photo; }

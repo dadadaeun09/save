@@ -8,8 +8,22 @@
   const SUPABASE_KEY = "sb_publishable_nsi4rBoLhLtREDq_GiJTJw_KZFf9EJM";
   const DATA_KEY = "data";
 
-  const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  const rawSet = Storage.prototype.setItem;
+  /* 로그인 세션을 탭마다 따로 보관해요(sessionStorage).
+     같은 브라우저에서 탭/창마다 다른 계정으로 로그인해도 서로 섞이지 않아요.
+     자동 로그인(localStorage에 currentUser가 있을 때)이면 브라우저를 다시 열 때를 위해 localStorage에도 복사해 둬요. */
+  const authStore = {
+    getItem(k) {
+      try {
+        let v = sessionStorage.getItem(k);
+        if (v === null) { v = localStorage.getItem(k); if (v !== null) sessionStorage.setItem(k, v); }
+        return v;
+      } catch { return null; }
+    },
+    setItem(k, v) { try { sessionStorage.setItem(k, v); if (localStorage.getItem("currentUser")) localStorage.setItem(k, v); } catch {} },
+    removeItem(k) { try { sessionStorage.removeItem(k); localStorage.removeItem(k); } catch {} },
+  };
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { storage: authStore } });
+  const rawSet = Storage.prototype.setItem, rawGet = Storage.prototype.getItem, rawRemove = Storage.prototype.removeItem;
 
   const currentUser = () => {
     try {
@@ -17,6 +31,12 @@
       return t ? JSON.parse(t) : null;
     } catch { return null; }
   };
+  /* 저축 데이터("data")도 계정별 키("data:이메일")로 나눠 저장해요. 한 기기에서 여러 계정을 써도 목표/기록이 섞이지 않아요.
+     페이지 코드는 그대로 localStorage "data"를 읽고 써도 여기서 자동으로 계정별 키로 바꿔 줘요. */
+  const dataKey = () => { const u = currentUser(); return u && u.email ? "data:" + String(u.email).trim().toLowerCase() : DATA_KEY; };
+  const mapKey = (self, k) => (self === localStorage && k === DATA_KEY) ? dataKey() : k;
+  Storage.prototype.getItem = function (k) { return rawGet.call(this, mapKey(this, k)); };
+  Storage.prototype.removeItem = function (k) { return rawRemove.call(this, mapKey(this, k)); };
   const canon = (v) => Array.isArray(v) ? v.map(canon)
     : v && typeof v === "object" ? Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])]))
     : v;
@@ -34,7 +54,7 @@
   // 페이지가 localStorage "data"를 저장할 때마다 DB에도 저장
   let timer;
   Storage.prototype.setItem = function (k, v) {
-    rawSet.apply(this, arguments);
+    rawSet.call(this, mapKey(this, k), v);
     if (this === localStorage && k === DATA_KEY) { clearTimeout(timer); timer = setTimeout(push, 400); }
   };
 
@@ -47,8 +67,8 @@
     if (!session || !cu || emailOf(cu) === emailOf(session.user)) return false;
     const meta = session.user.user_metadata || {};
     const next = { email: session.user.email, name: meta.name || String(session.user.email).split("@")[0] };
-    const store = sessionStorage.getItem("currentUser") ? sessionStorage : localStorage;
-    rawSet.call(store, "currentUser", JSON.stringify(next));
+    rawSet.call(sessionStorage, "currentUser", JSON.stringify(next));
+    if (localStorage.getItem("currentUser")) rawSet.call(localStorage, "currentUser", JSON.stringify(next));
     location.reload();
     return true;
   }
@@ -68,7 +88,7 @@
     const cloud = row && row.data && Object.keys(row.data).length ? row.data : null;
     const local = readLocal();
     if (cloud && !same(cloud, local)) {
-      rawSet.call(localStorage, DATA_KEY, JSON.stringify(cloud));
+      rawSet.call(localStorage, dataKey(), JSON.stringify(cloud));
       if (!sessionStorage.getItem("sbReloaded")) { sessionStorage.setItem("sbReloaded", "1"); location.reload(); return; }
     } else if (!cloud && local) {
       push(); // DB가 비어 있으면 이 기기의 데이터를 올림
