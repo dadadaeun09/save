@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>돈모으기운동 - 처음 설정</title>
+<title>SPENDICT - Settings</title>
 <style>
   :root {
     --green: #4caf7d; --green-dark: #3d9468; --pastel: #6fb98f; --pastel-text: #5a9e78;
@@ -45,34 +45,34 @@
 <body>
 
 <main>
-  <span class="step">처음 한 번만 하는 설정</span>
-  <h1>시작하기 전에 알려주세요</h1>
-  <p class="muted">입력한 내용은 나중에 마이 페이지에서 언제든 바꿀 수 있어요.</p>
+  <span class="step">Settings</span>
+  <h1>시작하기 전에 알려주세요.</h1>
+  <p class="muted">입력한 내용은 나중에 마이 페이지에서 수정할 수 있어요.</p>
 
   <form id="setupForm" novalidate>
     <div class="card">
-      <h2>저축 목표</h2>
-      <label for="goalName">저축 목표 <span class="req">*</span></label>
-      <input id="goalName" maxlength="30" placeholder="예: 유럽 여행, 노트북 구매" />
+      <h2>Saving goal</h2>
+      <label for="goalName">saving goal<span class="req">*</span></label>
+      <input id="goalName" maxlength="30" placeholder="ex: 유럽 여행, 노트북 구매" />
       <label for="goalTarget">목표 금액 (원) <span class="req">*</span></label>
-      <input id="goalTarget" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 3000000" />
+      <input id="goalTarget" type="number" inputmode="numeric" min="1" step="1" placeholder="ex: 3000000" />
       <label for="goalDeadline">목표 기한 <span class="opt">(선택)</span></label>
       <input id="goalDeadline" type="date" />
-      <p class="muted" style="margin-top:6px">비워 두면 월 소득의 20%를 저축한다고 가정해 계산해요.</p>
+      <p class="muted" style="margin-top:6px">비워 두면 월 소득의 20% 저축 기준으로 계산해요.</p>
     </div>
 
     <div class="card">
-      <h2>소득 수준</h2>
-      <label for="income">한 달 소득 (원) <span class="opt">(선택)</span></label>
+      <h2>Income level</h2>
+      <label for="income">월 소득 (원) <span class="opt">(선택)</span></label>
       <input id="income" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 2500000" />
-      <p class="muted" style="margin-top:6px">비워 두어도 괜찮아요. AI 채팅에서 구매 금액을 근무 시간으로 바꿔 볼 때 쓰이니, 나중에 마이 페이지에서 입력할 수 있어요.</p>
+      <p class="muted" style="margin-top:6px">비워 두어도 괜찮아요. 나중에 마이 페이지에서 입력할 수 있어요.</p>
     </div>
 
     <div class="card">
-      <h2>매달 고정 지출 <span class="opt">(선택)</span></h2>
+      <h2>Monthly fixed expenses <span class="opt">(선택)</span></h2>
       <p class="muted">월세, 식비, 통신비처럼 매달 꼭 나가는 돈이에요. 없으면 비워 두세요.</p>
       <div class="fixed-add">
-        <input id="fxName" maxlength="30" placeholder="항목 (예: 월세)" />
+        <input id="fxName" maxlength="30" placeholder="list (ex: 월세)" />
         <input id="fxAmount" type="number" inputmode="numeric" min="1" step="1" placeholder="금액(원)" />
         <button class="btn ghost small" id="fxAdd" type="button">추가</button>
       </div>
@@ -80,7 +80,7 @@
     </div>
 
     <p class="error" id="error" role="alert"></p>
-    <button class="btn" id="submitBtn" type="submit">시작하기</button>
+    <button class="btn" id="submitBtn" type="submit">Start</button>
   </form>
 </main>
 
