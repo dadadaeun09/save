@@ -2,7 +2,9 @@
 // index.html의 기존 채팅 코드 뒤에서 실행되어 "전송" 동작만 바꿉니다.
 (() => {
   const AI_API_URL = "https://save-d6ly.onrender.com";
+  const REMIND_DAYS = 3;   // 보류한 뒤 몇 일 뒤에 다시 알림을 줄지
   const aiHistory = [];
+  const reminded = new Set();
   let busy = false;
 
   // 첫 메시지에만 붙이는 사용자 정보 (화면에는 보이지 않음)
@@ -30,7 +32,10 @@
           data.resisted.push({ item: name, amount: price, date: todayStr() });
           aiSay(`합리적인 판단입니다. ${won(price)}을 지켰습니다. 누적 아낀 금액에 반영했습니다.`);
         } else if (kind === "hold") {
-          aiSay("보류로 기록했습니다. 3일 뒤에 다시 알림 드리겠습니다.");
+          // 마이페이지의 "구매 보류 품목"이 읽는 목록에 저장 (알림 날짜 포함)
+          data.held = data.held || [];
+          data.held.push({ item: name, amount: price, date: todayStr(), remindAt: addDays(REMIND_DAYS) });
+          aiSay(`보류로 기록했습니다. ${REMIND_DAYS}일 뒤에 다시 알림 드리겠습니다.`);
         } else {
           data.impulse.push({ item: name, amount: price, date: todayStr() });
           aiSay("설득에 실패했습니다. 이 구매는 충동구매로 기록되어 월말 정산에 표시됩니다.");
@@ -41,6 +46,42 @@
     }
     el.appendChild(box);
   }
+
+  // ---------- 보류 알림: 알림 날짜가 지난 품목을 채팅에서 다시 물어봅니다 ----------
+  const dueOf = (h) => h.remindAt || new Date(new Date(h.date).getTime() + REMIND_DAYS * 86400000).toISOString().slice(0, 10);
+
+  function remindDue() {
+    for (const h of (data.held || []).slice()) {
+      const key = h.item + "|" + h.date;
+      if (dueOf(h) > todayStr() || reminded.has(key)) continue;
+      reminded.add(key);
+      const days = Math.floor((new Date(todayStr()) - new Date(h.date)) / 86400000);
+      const el = addMsg("ai", esc(`🔔 ${days}일 전에 보류하신 '${h.item}'(${won(h.amount)})을(를) 아직 구매하고 싶으신가요? 다시 한 번 판단해 주세요.`));
+      const box = document.createElement("div"); box.className = "choices";
+      const resolve = (label, fn) => {
+        const b = document.createElement("button"); b.textContent = label;
+        b.onclick = () => { box.remove(); fn(); persist(); };
+        box.appendChild(b);
+      };
+      const drop = () => { const i = data.held.indexOf(h); if (i >= 0) data.held.splice(i, 1); };
+      resolve("구매 안 함", () => { drop(); data.resisted.push({ item: h.item, amount: h.amount, date: todayStr() }); aiSay(`합리적인 판단입니다. ${won(h.amount)}을 지켰습니다. 누적 아낀 금액에 반영했습니다.`); });
+      resolve("계속 보류", () => { h.remindAt = addDays(REMIND_DAYS); aiSay(`보류를 연장했습니다. ${REMIND_DAYS}일 뒤에 다시 알림 드리겠습니다.`); });
+      resolve("그래도 구매", () => { drop(); data.impulse.push({ item: h.item, amount: h.amount, date: todayStr() }); aiSay("충동구매로 기록되어 월말 정산에 표시됩니다."); });
+      el.appendChild(box);
+    }
+  }
+
+  // 채팅 탭을 열 때마다 확인 (처음부터 채팅 탭으로 열린 경우도 처리)
+  const baseGoTab = window.goTab;
+  if (typeof baseGoTab === "function") {
+    window.goTab = function (tab) {
+      const r = baseGoTab.apply(this, arguments);
+      if (tab === "chat") remindDue();
+      return r;
+    };
+  }
+  const chatPage = document.getElementById("page-chat");
+  if (chatPage && !chatPage.hidden) remindDue();
 
   $("chatform").onsubmit = async (e) => {
     e.preventDefault();

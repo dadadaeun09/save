@@ -459,9 +459,13 @@ function renderHeld() {
   if (!data.held.length) { el.innerHTML = '<div class="empty">보류 중인 품목이 없습니다.<br>AI 채팅에서 구매를 보류하면 여기에 표시돼요.</div>'; return; }
   el.innerHTML = data.held.map((h, i) => {
     const days = Math.floor((new Date(todayStr()) - new Date(h.date)) / 86400000);
+    const due = h.remindAt || new Date(new Date(h.date).getTime() + 3 * 86400000).toISOString().slice(0, 10);
+    const left = Math.ceil((new Date(due) - new Date(todayStr())) / 86400000);
+    const remind = left > 0 ? "🔔 " + left + "일 뒤(" + due + ") 알림" : "🔔 알림 시기가 되었어요. AI 채팅에서 다시 확인해 주세요.";
     return `<div class="held">
       <div class="row"><b>${esc(h.item)}</b><b>${won(h.amount)}</b></div>
       <div class="muted">${esc(h.date)} 보류 · ${days}일째</div>
+      <div class="muted">${remind}</div>
       <div class="actions">
         <button class="btn small" data-act="skip" data-i="${i}">구매 안 함</button>
         <button class="btn ghost small" data-act="buy" data-i="${i}">그래도 구매</button>
