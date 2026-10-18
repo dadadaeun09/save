@@ -33,6 +33,9 @@
   .btn { width: 100%; padding: 11px; border: 0; border-radius: 10px; background: var(--green); color: #fff;
     font: inherit; cursor: pointer; }
   .btn:hover { background: var(--green-dark); }
+  .linklike { display: block; margin: 14px auto 0; background: none; border: 0; font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; color: inherit; opacity: .7; }
+  #verifyCode { text-align: center; letter-spacing: 0.3em; font-size: 20px; }
+  #verifyCode::placeholder { letter-spacing: normal; font-size: 14px; }
 </style>
 <link rel="stylesheet" href="polish.css" />
 </head>
@@ -69,6 +72,17 @@
     <p class="error" id="signupError"></p>
     <button type="submit" class="btn">회원가입</button>
   </form>
+
+  <!-- 이메일 인증 코드 입력: 가입 후(또는 인증이 안 된 계정으로 로그인했을 때) 나와요 -->
+  <form id="verifyForm" hidden>
+    <p class="muted" id="verifyInfo" style="text-align:center"></p>
+    <label for="verifyCode">인증 코드</label>
+    <input type="text" id="verifyCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" pattern="[0-9]{6,10}" placeholder="이메일로 받은 숫자 코드" required />
+    <p class="error" id="verifyError"></p>
+    <button type="submit" class="btn">인증하고 시작하기</button>
+    <button type="button" class="btn ghost" id="resendBtn" style="margin-top:8px">코드 다시 보내기</button>
+    <button type="button" class="linklike" id="verifyBack">처음으로 돌아가기</button>
+  </form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -100,13 +114,59 @@ function showTab(login) {
   $("signupTab").classList.toggle("active", !login);
   $("loginForm").hidden = !login;
   $("signupForm").hidden = login;
+  $("verifyForm").hidden = true;
+  document.querySelector(".tabs").hidden = false;
 }
+
+/* ---------- 이메일 인증 코드 ---------- */
+let pendingEmail = "";
+let resendTimer = null;
+function startResendCooldown(sec) {
+  const btn = $("resendBtn");
+  clearInterval(resendTimer);
+  let left = sec;
+  btn.disabled = true;
+  const tick = () => {
+    if (left <= 0) { clearInterval(resendTimer); btn.disabled = false; btn.textContent = "코드 다시 보내기"; return; }
+    btn.textContent = `코드 다시 보내기 (${left}초)`; left--;
+  };
+  tick(); resendTimer = setInterval(tick, 1000);
+}
+function showVerify(email, note) {
+  pendingEmail = email;
+  $("loginForm").hidden = true; $("signupForm").hidden = true; $("verifyForm").hidden = false;
+  document.querySelector(".tabs").hidden = true;
+  $("verifyInfo").textContent = note || `${email} 로 인증 코드를 보냈어요. 메일함(스팸함도)을 확인하고 코드를 입력해 주세요.`;
+  $("verifyError").textContent = ""; $("verifyCode").value = ""; $("verifyCode").focus();
+  startResendCooldown(60);
+}
+$("verifyBack").onclick = () => { clearInterval(resendTimer); showTab(false); };
+$("resendBtn").onclick = async () => {
+  $("verifyError").textContent = "";
+  const { error } = await sb.auth.resend({ type: "signup", email: pendingEmail });
+  if (error) { $("verifyError").textContent = authMessage(error.message); return; }
+  $("verifyInfo").textContent = `${pendingEmail} 로 새 인증 코드를 보냈어요. 가장 최근에 받은 코드를 입력해 주세요.`;
+  startResendCooldown(60);
+};
+$("verifyForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector("button[type=submit]");
+  btn.disabled = true; $("verifyError").textContent = "";
+  const { data, error } = await sb.auth.verifyOtp({ email: pendingEmail, token: $("verifyCode").value.trim(), type: "signup" });
+  btn.disabled = false;
+  if (error || !data.user) { $("verifyError").textContent = "코드가 올바르지 않거나 만료됐어요. 다시 확인하거나 새 코드를 받아 주세요."; return; }
+  clearInterval(resendTimer);
+  await finishLogin(data.user, pendingEmail, false); // 인증이 끝나면 바로 로그인
+};
 $("loginTab").onclick = () => showTab(true);
 $("signupTab").onclick = () => showTab(false);
 
 const authMessage = (m) => {
   if (/already registered|already been registered/i.test(m)) return "이미 가입된 이메일이에요.";
   if (/invalid login/i.test(m)) return "이메일 또는 비밀번호가 맞지 않아요.";
+  if (/not confirmed/i.test(m)) return "이메일 인증이 아직 안 됐어요.";
+  if (/rate limit|too many|security purposes|after \d+ seconds/i.test(m)) return "너무 자주 요청했어요. 잠시 후 다시 시도해 주세요.";
+  if (/sending.*email|smtp|unable to send/i.test(m)) return "인증 메일을 보내지 못했어요. 이메일 주소를 확인하거나 잠시 후 다시 시도해 주세요.";
   if (/password/i.test(m)) return "비밀번호는 6자 이상이어야 해요.";
   if (/rate limit|too many/i.test(m)) return "잠시 후 다시 시도해 주세요.";
   if (/valid email|invalid.*email/i.test(m)) return "이메일 형식을 확인해 주세요.";
@@ -127,11 +187,18 @@ $("signupForm").onsubmit = async (e) => {
   if (data.user && data.user.identities && data.user.identities.length === 0) {
     $("signupError").textContent = "이미 가입된 이메일이에요."; return;
   }
-  await sb.auth.signOut(); // 가입 직후 자동 로그인 상태를 풀고, 아래 안내대로 직접 로그인
+  if (data.session) {
+    // 이메일 인증이 꺼져 있는 경우(예전 방식): 가입 직후 자동 로그인 상태를 풀고, 직접 로그인
+    await sb.auth.signOut();
+    form.reset();
+    showTab(true);
+    $("loginEmail").value = email;
+    $("loginError").textContent = "회원가입이 완료됐어요. 로그인해 주세요.";
+    return;
+  }
+  // 이메일 인증이 켜져 있으면: 메일로 온 코드를 입력해야 가입이 끝나요
   form.reset();
-  showTab(true);
-  $("loginEmail").value = email;
-  $("loginError").textContent = "회원가입이 완료됐어요. 로그인해 주세요.";
+  showVerify(email);
 };
 
 $("loginForm").onsubmit = async (e) => {
@@ -141,8 +208,20 @@ $("loginForm").onsubmit = async (e) => {
   btn.disabled = true; $("loginError").textContent = "";
   const { data, error } = await sb.auth.signInWithPassword({ email, password: $("loginPassword").value });
   btn.disabled = false;
-  if (error) { $("loginError").textContent = authMessage(error.message); return; }
-  const user = data.user;
+  if (error) {
+    if (/not confirmed/i.test(error.message)) {
+      // 가입은 했지만 이메일 인증을 안 한 계정: 새 코드를 보내고 코드 입력 화면으로
+      const r = await sb.auth.resend({ type: "signup", email });
+      showVerify(email, r.error ? `${email} 은(는) 이메일 인증이 필요해요. 아래 '코드 다시 보내기'를 눌러 코드를 받아 주세요.` : `${email} 은(는) 이메일 인증이 필요해요. 방금 새 코드를 보냈어요. 메일함을 확인해 주세요.`);
+      return;
+    }
+    $("loginError").textContent = authMessage(error.message); return;
+  }
+  await finishLogin(data.user, email, $("autoLogin").checked);
+};
+
+/* 로그인(또는 이메일 인증)이 끝난 뒤 공통으로 하는 일 */
+async function finishLogin(user, email, remember) {
   // 다른 계정으로 바꿔 로그인하면 이전 계정의 데이터가 섞이지 않게 비움
   try {
     if (localStorage.getItem("lastUserId") && localStorage.getItem("lastUserId") !== user.id) localStorage.removeItem("data");
@@ -150,7 +229,7 @@ $("loginForm").onsubmit = async (e) => {
   } catch {}
   const text = JSON.stringify({ email: user.email, name: (user.user_metadata && user.user_metadata.name) || email.split("@")[0] });
   try { sessionStorage.removeItem("currentUser"); localStorage.removeItem("currentUser"); } catch {}
-  (($("autoLogin").checked) ? localStorage : sessionStorage).setItem("currentUser", text);
+  (remember ? localStorage : sessionStorage).setItem("currentUser", text);
 
   // 처음 가입하고 첫 로그인이면(저장된 목표/설정이 아직 없으면) 홈 전에 처음 설정 페이지를 거칩니다.
   // 이미 설정한 사람이나 조회에 실패한 경우에는 평소처럼 바로 이동해요.
