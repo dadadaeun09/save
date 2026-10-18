@@ -66,6 +66,25 @@
   .del { border: 0; background: none; color: var(--gray); font: inherit; font-size: 13px; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
   .del:hover { background: #fdecec; color: var(--red); }
   @media (max-width: 480px) { .imp-form { grid-template-columns: 1fr 1fr; } .imp-form .btn { grid-column: 1 / -1; } }
+
+  /* 벤토 그리드: 모바일은 2열, 넓은 화면은 4열 */
+  main { max-width: 960px; }
+  .bento { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: "goal goal" "saved resisted" "impsum impsum" "savlog savlog" "implog implog"; }
+  .bento .card { margin: 0; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .b-goal { grid-area: goal; justify-content: space-between; gap: 8px; }
+  .b-saved { grid-area: saved; }
+  .b-resisted { grid-area: resisted; }
+  .b-impsum { grid-area: impsum; }
+  .b-savlog { grid-area: savlog; }
+  .b-implog { grid-area: implog; }
+  .b-goal .big { font-size: clamp(30px, 8vw, 46px); line-height: 1.1; }
+  .b-saved .big, .b-resisted .big, .b-impsum .big { font-size: clamp(18px, 4.8vw, 28px); overflow-wrap: anywhere; }
+  .b-goal .progress { height: 16px; }
+  @media (min-width: 760px) {
+    .bento { grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-areas: "goal goal saved resisted" "goal goal impsum impsum" "savlog savlog implog implog"; }
+  }
 </style>
 <link rel="stylesheet" href="polish.css" />
 </head>
@@ -80,38 +99,49 @@
 <main>
   <h2 id="welcome"></h2>
 
-  <section class="card soft" id="goalCard"></section>
+  <!-- 벤토 그리드: 크기가 다른 칸을 빈틈없이 짜 맞춰요 -->
+  <div class="bento">
+    <section class="card soft b-goal" id="goalCard"></section>
 
-  <section class="card">
-    <h3>현재 저축액</h3>
-    <div class="big" id="savedNow"></div>
-    <div class="muted" id="monthlyNeed"></div>
-    <form class="imp-form" id="savForm">
+    <section class="card b-saved">
+      <h3>현재 저축액</h3>
+      <div class="big" id="savedNow"></div>
+      <div class="muted" id="monthlyNeed"></div>
+    </section>
+
+    <section class="card b-resisted">
+      <h3>아낀 금액</h3>
+      <div class="big" id="resistedTotal"></div>
+      <div class="muted" id="resistedCount"></div>
+    </section>
+
+    <section class="card b-impsum">
+      <h3>이번 달 충동구매</h3>
+      <div class="row"><div class="big red" id="impulseTotal"></div><span class="muted" id="impulseCount"></span></div>
+      <div class="muted" id="impulseEffect"></div>
+    </section>
+
+    <section class="card b-savlog">
+      <h3>저축 기록</h3>
+      <form class="imp-form" id="savForm">
       <input type="text" id="savMemo" placeholder="메모 (예: 월급 저축)" maxlength="40" />
       <input type="number" id="savAmount" placeholder="저축한 금액(원)" min="1" step="1" required />
       <button class="btn" type="submit">추가</button>
     </form>
-    <div class="muted">저축한 금액을 적으면 현재 저축액에 더해지고, 삭제하면 다시 빠져요. (목표 금액은 바뀌지 않아요)</div>
-    <ul class="list" id="savingsList"></ul>
-  </section>
+      <div class="muted">저축한 금액을 적으면 현재 저축액에 더해지고, 삭제하면 다시 빠져요. (목표 금액은 바뀌지 않아요)</div>
+      <ul class="list" id="savingsList"></ul>
+    </section>
 
-  <section class="card">
-    <h3>아낀 금액</h3>
-    <div class="big" id="resistedTotal"></div>
-    <div class="muted" id="resistedCount"></div>
-  </section>
-
-  <section class="card">
-    <h3>이번 달 충동구매</h3>
-    <div class="row"><div class="big red" id="impulseTotal"></div><span class="muted" id="impulseCount"></span></div>
-    <div class="muted" id="impulseEffect"></div>
-    <form class="imp-form" id="impForm">
+    <section class="card b-implog">
+      <h3>충동구매 기록</h3>
+      <form class="imp-form" id="impForm">
       <input type="text" id="impItem" placeholder="무엇을 샀나요? (예: 야식)" maxlength="40" required />
       <input type="number" id="impAmount" placeholder="금액(원)" min="1" step="1" required />
       <button class="btn" type="submit">추가</button>
     </form>
-    <ul class="list" id="impulseList"></ul>
-  </section>
+      <ul class="list" id="impulseList"></ul>
+    </section>
+  </div>
 </main>
 
 <nav class="bottom-bar" id="bottomBar"></nav>

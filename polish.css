@@ -1,172 +1,199 @@
 /* =========================================================
-   polish.css - 사이트 전체에 덧입히는 "세련됨" 디자인
+   polish.css - 무채색 리퀴드 글래스(Liquid Glass) 테마
    ---------------------------------------------------------
-   각 페이지의 <head> 맨 끝에 한 줄로 불러와요:
+   각 페이지의 <head> 맨 끝에서 한 줄로 불러와요:
      <link rel="stylesheet" href="polish.css">
-   페이지 안의 기존 <style> 뒤에 읽혀서 기존 디자인 위에 덮어써져요.
-   색상은 팀 초록 테마(#4caf7d / 파스텔 초록)를 그대로 써요.
-   이 파일만 지우면 예전 모습으로 돌아가요.
+   페이지 안의 기존 <style> 뒤에 읽혀서 색과 모양만 덮어써요. (기능은 그대로)
+   색은 흰색~검정 사이의 회색만 써요(무채색). 이 파일만 지우면 예전 모습으로 돌아가요.
    ========================================================= */
 
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap");
 
+/* ---------- 색 이름표 (밝은 화면) ---------- */
 :root {
-  --p-green: #4caf7d;
-  --p-green-dark: #3d9468;
-  --p-green-light: #7bc9a0;
-  --p-text: #3f7d5d;                 /* 글자: 파스텔 초록이지만 읽기 편하게 살짝 진하게 */
-  --p-muted: #8ea398;
-  --p-line: #e0f0e7;
-  --p-soft: #f3faf6;
-  --p-shadow: 0 6px 24px rgba(76, 175, 125, 0.12);
-  --p-shadow-sm: 0 2px 10px rgba(76, 175, 125, 0.10);
+  color-scheme: light;
+  --ink: #1c1c1e;             /* 기본 글자 */
+  --ink-soft: #48484d;        /* 보조 글자 */
+  --ink-mute: #7a7a82;        /* 흐린 글자 */
+  --on-accent: #fff;          /* 진한 버튼 위의 글자 */
+  --accent: #1c1c1e;          /* 강조(버튼, 진행 막대) */
+  --accent-2: #4a4a50;
+  --glass: rgba(255, 255, 255, 0.40);
+  --glass-strong: rgba(255, 255, 255, 0.64);
+  --glass-weak: rgba(255, 255, 255, 0.22);
+  --sheen: rgba(255, 255, 255, 0.60);          /* 유리 위쪽 모서리의 반사광 */
+  --rim: rgba(255, 255, 255, 0.78);            /* 유리 테두리 */
+  --hair: rgba(0, 0, 0, 0.10);                 /* 얇은 구분선 */
+  --shadow: 0 12px 34px rgba(0, 0, 0, 0.14);
+  --shadow-sm: 0 3px 12px rgba(0, 0, 0, 0.08);
+  --hl: inset 0 1.5px 1px rgba(255, 255, 255, 0.95), inset 0 -1px 1px rgba(255, 255, 255, 0.35);
+  --blur: blur(26px) saturate(180%);
+  --track: rgba(255, 255, 255, 0.55);          /* 진행 막대 바탕 */
+  --focus: rgba(0, 0, 0, 0.14);
+  --page-base: #c7c7cc;
+  --blob-1: rgba(255, 255, 255, 0.95);
+  --blob-2: rgba(110, 110, 118, 0.50);
+  --blob-3: rgba(80, 80, 88, 0.42);
+  --blob-4: rgba(255, 255, 255, 0.55);
+
+  /* 페이지마다 따로 정의해 둔 색 이름을 모두 회색으로 바꿔요 */
+  --green: var(--accent); --green-dark: var(--accent-2);
+  --pastel: var(--ink-soft); --pastel-text: var(--ink); --pastel-light: var(--hair); --pastel-bg: var(--glass-weak);
+  --white: var(--glass); --gray: var(--ink-mute); --red: var(--ink-soft);
+  --bg: transparent; --card: var(--glass); --text: var(--ink); --muted: var(--ink-mute); --line: var(--hair);
+  --primary: var(--accent); --primary-dark: var(--accent-2); --soft: var(--glass-weak);
+  --good: var(--ink); --bad: var(--ink-soft);
 }
 
-/* ----- 바탕과 글꼴 ----- */
-html { scroll-behavior: smooth; }
+/* ---------- 어두운 화면 ---------- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --ink: #f2f2f4; --ink-soft: #c4c4ca; --ink-mute: #96969e;
+    --on-accent: #1c1c1e; --accent: #f2f2f4; --accent-2: #c4c4ca;
+    --glass: rgba(255, 255, 255, 0.08); --glass-strong: rgba(255, 255, 255, 0.17); --glass-weak: rgba(255, 255, 255, 0.05);
+    --sheen: rgba(255, 255, 255, 0.14); --rim: rgba(255, 255, 255, 0.20); --hair: rgba(255, 255, 255, 0.12);
+    --shadow: 0 12px 34px rgba(0, 0, 0, 0.55); --shadow-sm: 0 3px 12px rgba(0, 0, 0, 0.4);
+    --hl: inset 0 1px 1px rgba(255, 255, 255, 0.28), inset 0 -1px 1px rgba(255, 255, 255, 0.05);
+    --track: rgba(255, 255, 255, 0.14); --focus: rgba(255, 255, 255, 0.22);
+    --page-base: #141416;
+    --blob-1: rgba(120, 120, 130, 0.45); --blob-2: rgba(70, 70, 78, 0.55);
+    --blob-3: rgba(50, 50, 56, 0.6); --blob-4: rgba(100, 100, 110, 0.25);
+  }
+}
 
+/* ---------- 바탕: 회색 빛이 번지는 배경 (유리 뒤에서 비쳐 보여요) ---------- */
+html { scroll-behavior: smooth; }
 body {
   font-family: "Pretendard", system-ui, -apple-system, "Malgun Gothic", sans-serif;
-  background: linear-gradient(180deg, #f7fcf9 0%, #ffffff 280px);
-  background-attachment: fixed;
-  color: var(--p-text);
+  color: var(--ink);
   line-height: 1.55;
   letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
+  background:
+    radial-gradient(55% 40% at 10% 6%, var(--blob-1), transparent 62%),
+    radial-gradient(45% 40% at 95% 30%, var(--blob-2), transparent 62%),
+    radial-gradient(60% 50% at 20% 98%, var(--blob-3), transparent 62%),
+    radial-gradient(40% 30% at 72% 62%, var(--blob-4), transparent 60%),
+    var(--page-base);
+  background-attachment: fixed;
 }
-
+a { color: var(--ink); }
 h2 { font-size: 22px; letter-spacing: -0.03em; }
-h2, h3 { font-weight: 700; }
+h2, h3, .card h3 { font-weight: 700; color: var(--ink); }
+.card h3 { color: var(--ink-soft); letter-spacing: -0.02em; }
+.muted, .profile-sub { color: var(--ink-mute); }
+.big { font-variant-numeric: tabular-nums; letter-spacing: -0.03em; color: var(--ink); }
+.big.red, .bad { color: var(--ink-soft); }
+.good { color: var(--ink); }
+::placeholder { color: var(--ink-mute); opacity: 0.85; }
 
-/* 페이지가 열릴 때 부드럽게 나타나요 */
-@keyframes p-rise {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: none; }
-}
-main, #app > .page:not([hidden]) {
-  animation: p-rise 0.4s ease both;
-}
+@keyframes p-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+main, #app > .page:not([hidden]) { animation: p-rise 0.4s ease both; }
 
-/* ----- 카드 ----- */
-.card {
-  background: #fff;
-  border: 1px solid var(--p-line);
-  border-radius: 20px;
-  box-shadow: var(--p-shadow-sm);
+/* ---------- 유리 칸 (카드) ---------- */
+.card, .box {
+  background-color: var(--glass);
+  background-image: linear-gradient(135deg, var(--sheen), transparent 55%);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--rim);
+  border-radius: 24px;
+  box-shadow: var(--hl), var(--shadow);
   padding: 20px;
   transition: box-shadow 0.2s, transform 0.2s;
 }
-.card:hover { box-shadow: var(--p-shadow); }
+.card:hover { box-shadow: var(--hl), 0 16px 40px rgba(0, 0, 0, 0.18); }
+.card.soft { background-color: var(--glass-strong); border-color: var(--rim); }
 
-.card.soft {
-  background: linear-gradient(135deg, #e9f7f0 0%, #f6fcf9 100%);
-  border-color: transparent;
-}
-
-.card h3 { font-weight: 700; letter-spacing: -0.02em; }
-
-/* ----- 숫자 ----- */
-.big { font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
-.muted { color: var(--p-muted); }
-
-/* ----- 버튼 ----- */
-.btn {
-  background: linear-gradient(135deg, var(--p-green-light) 0%, var(--p-green) 100%);
-  color: #fff;
+/* ---------- 버튼: 진한 유리 알약 ---------- */
+.btn, #chatform button {
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  color: var(--on-accent);
   font-weight: 600;
+  border: 0;
   border-radius: 14px;
   padding: 12px 20px;
-  box-shadow: 0 4px 14px rgba(76, 175, 125, 0.30);
+  box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.35), 0 6px 16px rgba(0, 0, 0, 0.25);
   transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
 }
-.btn:hover {
-  background: linear-gradient(135deg, var(--p-green-light) 0%, var(--p-green-dark) 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(76, 175, 125, 0.38);
-}
+.btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
 .btn:active { transform: translateY(0) scale(0.98); }
-
 .btn.ghost, .btn.outline {
-  background: #fff;
-  color: var(--p-green);
-  border: 1.5px solid var(--p-line);
-  box-shadow: none;
+  background: var(--glass); color: var(--ink);
+  border: 1px solid var(--rim);
+  box-shadow: var(--hl);
 }
-.btn.ghost:hover, .btn.outline:hover { background: var(--p-soft); box-shadow: none; }
-
+.btn.ghost:hover, .btn.outline:hover { background: var(--glass-strong); filter: none; }
 .btn.danger { box-shadow: none; }
 
-/* ----- 입력창 ----- */
+/* ---------- 입력창 ---------- */
 input, select, textarea {
-  border: 1.5px solid #d9eee2;
+  background: var(--glass-weak);
+  color: var(--ink);
+  border: 1px solid var(--rim);
   border-radius: 14px;
-  background: #fcfefd;
-  color: #2f6a4c;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
 }
-input::placeholder { color: #a9c1b3; }
 input:focus, select:focus, textarea:focus {
   outline: none;
-  background: #fff;
-  border-color: var(--p-green);
-  box-shadow: 0 0 0 4px rgba(76, 175, 125, 0.15);
+  background: var(--glass-strong);
+  border-color: var(--ink-mute);
+  box-shadow: 0 0 0 4px var(--focus);
 }
 
-/* ----- 진행 막대 ----- */
-.bar, .progress {
-  background: #e4f3ea;
-  border-radius: 999px;
-}
-.bar > i, .progress i {
-  background: linear-gradient(90deg, var(--p-green-light), var(--p-green));
-  border-radius: 999px;
-}
+/* ---------- 진행 막대 ---------- */
+.bar, .progress { background: var(--track); border-radius: 999px; box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.14); }
+.bar > i, .progress i { background: linear-gradient(90deg, var(--accent-2), var(--accent)); border-radius: 999px; }
 
-/* ----- 목록 ----- */
-ul.list li { border-color: var(--p-line); }
-.member { border-color: var(--p-line); }
-.member.me { background: var(--p-soft); border-radius: 12px; padding-left: 10px; padding-right: 10px; }
+/* ---------- 목록, 구분선, 작은 라벨 ---------- */
+ul.list li, .member, .item, .item + .item, .held, .row + .row { border-color: var(--hair); }
+.member.me { background: var(--glass); border-radius: 12px; padding-left: 10px; padding-right: 10px; }
+.badge, .tag { background: var(--glass-strong); color: var(--ink); border: 1px solid var(--rim); border-radius: 999px; }
+.del { color: var(--ink-mute); }
+.del:hover { background: var(--glass-strong); color: var(--ink); }
+.avatar { background: linear-gradient(180deg, var(--accent-2), var(--accent)); color: var(--on-accent); box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.35), 0 4px 12px rgba(0, 0, 0, 0.25); }
+.item.danger, .req { color: var(--ink); font-weight: 700; }
+.error { color: var(--ink); font-weight: 600; font-size: 13px; }
+.toast { background: rgba(28, 28, 30, 0.88); color: #fff; }
 
-.badge, .tag {
-  background: #e4f4ec;
-  color: var(--p-green-dark);
-  border-radius: 999px;
-}
-
-/* ----- 상단바 ----- */
+/* ---------- 상단바, 펼침 메뉴 ---------- */
 .topbar, .navbar {
-  background: rgba(255, 255, 255, 0.85);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--p-line);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border-bottom: 1px solid var(--rim);
+  box-shadow: var(--shadow-sm);
 }
-.logo { letter-spacing: -0.04em; }
-
+.logo { letter-spacing: -0.04em; color: var(--ink); }
+.menu-button span { background: var(--ink); }
+.menu-button:hover { background: var(--glass-strong); }
 .dropdown {
-  border: 1px solid var(--p-line);
-  border-radius: 16px;
-  box-shadow: var(--p-shadow);
-  background: #fff;
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--rim);
+  border-radius: 18px;
+  box-shadow: var(--hl), var(--shadow);
 }
-.dropdown a, .dropdown button { border-radius: 12px; }
+.dropdown a, .dropdown button { border-radius: 12px; color: var(--ink); }
+.dropdown a.active, .dropdown a:hover, .dropdown button:hover { background: var(--glass); color: var(--ink); }
 
-/* ----- 하단 이동바: 유리처럼 비치는 떠 있는 알약 (아이콘 + 글자) ----- */
-/* 두 가지 구조를 모두 지원해요: .bottom-bar(링크가 바로 안에) / nav#tabbar > .inner */
+/* ---------- 하단 이동바: 투명한 유리 알약 (아이콘 + 글자) ---------- */
 :root {
-  /* 아이콘은 이모지 대신 선으로 그린 그림(SVG)을 CSS로 불러와요 */
   --i-home: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 11l9-8 9 8'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3C/svg%3E");
   --i-group: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20c0-3.6 3-6 6.5-6s6.5 2.4 6.5 6'/%3E%3Cpath d='M16 4.6a3.5 3.5 0 0 1 0 6.8'/%3E%3Cpath d='M18 14.4c2.2.6 3.5 2.6 3.5 5.6'/%3E%3C/svg%3E");
   --i-my: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7'/%3E%3C/svg%3E");
   --i-chat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-5.4A8 8 0 1 1 21 12z'/%3E%3C/svg%3E");
 }
 
+/* 두 가지 구조를 모두 지원해요: .bottom-bar(링크가 바로 안에) / nav#tabbar > .inner */
 .bottom-bar,
 nav#tabbar .inner {
   position: fixed;
-  /* 화면 전체 너비(스크롤바 포함)의 가운데에 고정해요.
-     페이지에 세로 스크롤바가 생기고 사라져도 이동바가 좌우로 움직이지 않아요. */
-  left: 50vw;
+  left: 50vw;                 /* 스크롤바가 생겨도 좌우로 흔들리지 않게 화면 전체 기준 */
   transform: translateX(-50%);
   bottom: calc(14px + env(safe-area-inset-bottom));
   width: min(480px, calc(100vw - 32px));
@@ -175,60 +202,31 @@ nav#tabbar .inner {
   display: flex;
   gap: 2px;
   padding: 6px;
-  background: rgba(255, 255, 255, 0.38);
-  -webkit-backdrop-filter: saturate(200%) blur(24px);
-  backdrop-filter: saturate(200%) blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  background-color: var(--glass-weak);
+  background-image: linear-gradient(180deg, var(--sheen), transparent 70%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  backdrop-filter: blur(28px) saturate(200%);
+  border: 1px solid var(--rim);
   border-radius: 999px;
-  /* 유리 가장자리의 반짝이는 빛 + 아래 그림자 */
-  box-shadow:
-    inset 0 1.5px 1px rgba(255, 255, 255, 0.95),
-    inset 0 -1px 1px rgba(255, 255, 255, 0.35),
-    0 10px 32px rgba(40, 110, 75, 0.20),
-    0 0 0 0.5px rgba(76, 175, 125, 0.18);
+  box-shadow: var(--hl), 0 12px 34px rgba(0, 0, 0, 0.20), 0 0 0 0.5px var(--hair);
 }
-
-/* nav#tabbar 바깥 틀은 투명하게 두고, 안쪽 .inner만 알약으로 보이게 해요 */
-nav#tabbar {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  pointer-events: none;
-}
+nav#tabbar { background: transparent; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; pointer-events: none; }
 nav#tabbar .inner { pointer-events: auto; position: fixed; }
-nav#tabbar .inner span { display: none; }   /* 예전 이모지 아이콘은 숨겨요 */
+nav#tabbar .inner span { display: none; }
 
-.bottom-bar a,
-nav#tabbar button,
-nav#tabbar a {
+.bottom-bar a, nav#tabbar button, nav#tabbar a {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 3px;
   padding: 8px 4px 7px;
-  border: 0;
-  border-radius: 999px;
-  font-size: 11px;
-  line-height: 1.2;
-  text-align: center;
-  white-space: nowrap;
-  color: #5f7a6c;
+  border: 0; border-radius: 999px;
+  font-size: 11px; line-height: 1.2; text-align: center; white-space: nowrap;
+  color: var(--ink-soft);
   background: transparent;
   transition: color 0.2s, background 0.2s, box-shadow 0.2s;
 }
-
-/* 아이콘: 글자색을 그대로 따라가요 */
-.bottom-bar a::before,
-nav#tabbar button::before,
-nav#tabbar a::before {
-  content: "";
-  display: block;
-  width: 22px;
-  height: 22px;
+.bottom-bar a::before, nav#tabbar button::before, nav#tabbar a::before {
+  content: ""; display: block; width: 22px; height: 22px;
   background: currentColor;
   -webkit-mask: var(--icon) center / contain no-repeat;
   mask: var(--icon) center / contain no-repeat;
@@ -238,213 +236,47 @@ nav#tabbar a::before {
 .bottom-bar a[href*="mypage"], .bottom-bar a[href$="#my"], nav#tabbar button[data-tab="my"], nav#tabbar a[href*="mypage"] { --icon: var(--i-my); }
 .bottom-bar a[href$="#chat"], nav#tabbar button[data-tab="chat"], nav#tabbar a[href$="#chat"] { --icon: var(--i-chat); }
 
-/* 지금 보고 있는 칸: 알약 안에 더 밝은 유리 알약 + 초록 글자 */
-.bottom-bar a.active,
-nav#tabbar button.active,
-nav#tabbar a.active {
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--p-green-dark);
+/* 지금 보고 있는 칸: 알약 안에 더 밝은 유리 알약 */
+.bottom-bar a.active, nav#tabbar button.active, nav#tabbar a.active {
+  background: var(--glass-strong);
+  color: var(--ink);
   font-weight: 700;
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 1),
-    0 2px 10px rgba(40, 110, 75, 0.14);
+  box-shadow: var(--hl), 0 3px 12px rgba(0, 0, 0, 0.14);
 }
-.bottom-bar a:hover:not(.active),
-nav#tabbar button:hover:not(.active),
-nav#tabbar a:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.35);
-  color: var(--p-green);
-}
+.bottom-bar a:hover:not(.active), nav#tabbar button:hover:not(.active), nav#tabbar a:hover:not(.active) { background: var(--glass); color: var(--ink); }
 
-/* 떠 있는 바 때문에 채팅 입력창이 가려지지 않게 위로 올려요 */
-#chatform { bottom: 104px; }
-
-/* 전송 버튼 글자가 세로로 꺾이지 않게: 줄바꿈 금지 + 줄어들지 않게 */
+/* ---------- 채팅 ---------- */
+#chatform { bottom: 104px; background: transparent; }
 #chatform button { white-space: nowrap; flex-shrink: 0; min-width: 72px; }
-
-/* ----- 채팅 말풍선 ----- */
-.msg { box-shadow: var(--p-shadow-sm); }
-.msg.user {
-  background: linear-gradient(135deg, var(--p-green-light), var(--p-green));
-  border-radius: 18px 18px 4px 18px;
-}
+.msg { box-shadow: var(--shadow-sm); }
+.msg.user { background: linear-gradient(180deg, var(--accent-2), var(--accent)); color: var(--on-accent); border-radius: 18px 18px 4px 18px; }
 .msg.ai {
-  border: 1px solid var(--p-line);
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  border: 1px solid var(--rim);
   border-radius: 18px 18px 18px 4px;
+  box-shadow: var(--hl), var(--shadow-sm);
+  color: var(--ink);
 }
-.choices button {
-  border: 1.5px solid var(--p-line);
-  background: #fff;
-  color: var(--p-green);
-  transition: background 0.15s;
-}
-.choices button:hover { background: var(--p-soft); }
+.choices button { background: var(--glass); border: 1px solid var(--rim); color: var(--ink); transition: background 0.15s; }
+.choices button:hover { background: var(--glass-strong); }
 
-/* ----- 로그인 상자 ----- */
-.box {
-  border: 1px solid var(--p-line);
-  border-radius: 24px;
-  box-shadow: 0 12px 40px rgba(76, 175, 125, 0.16);
-  background: #fff;
-}
-.tabs { background: #eef8f2; border-radius: 14px; }
-.tabs button { transition: background 0.15s, color 0.15s, box-shadow 0.15s; }
-.tabs button.active { box-shadow: 0 2px 8px rgba(76, 175, 125, 0.18); }
-.error { font-size: 13px; }
+/* ---------- 로그인 ---------- */
+.tabs { background: var(--glass-weak); border: 1px solid var(--rim); border-radius: 14px; }
+.tabs button { color: var(--ink-soft); transition: background 0.15s, color 0.15s, box-shadow 0.15s; }
+.tabs button.active { background: var(--glass-strong); color: var(--ink); box-shadow: var(--hl), var(--shadow-sm); }
 
-/* ----- 움직임을 싫어하는 사용자 설정을 존중해요 ----- */
+/* ---------- 움직임을 싫어하는 사용자 설정을 존중해요 ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
-/* =========================================================
-   유리(글래스) 테마 - 연한 잔디색 배경 위에 비치는 반투명 유리 칸
-   ---------------------------------------------------------
-   기능은 건드리지 않고 색과 모양만 덧입혀요. 이 블록을 지우면 이전 디자인으로 돌아가요.
-   ========================================================= */
-:root {
-  --g-ink: #265f40;            /* 기본 글자: 잔디 위에서도 잘 읽히는 진한 초록 */
-  --g-ink-soft: #46695a;       /* 보조 글자 */
-  --g-heading: #2a7a50;        /* 제목 */
-  --g-glass: rgba(255, 255, 255, 0.42);
-  --g-glass-strong: rgba(255, 255, 255, 0.62);
-  --g-rim: rgba(255, 255, 255, 0.72);
-  --g-shadow: 0 10px 32px rgba(58, 110, 38, 0.16);
-  --g-blur: blur(22px) saturate(180%);
-}
-
-/* ----- 배경: 연한 잔디색 + 유리 뒤에서 은은하게 번지는 빛 ----- */
-body {
-  color: var(--g-ink);
-  background:
-    radial-gradient(60% 40% at 12% 8%, rgba(255, 255, 255, 0.38), transparent 62%),
-    radial-gradient(50% 40% at 92% 28%, rgba(110, 185, 85, 0.60), transparent 62%),
-    radial-gradient(60% 50% at 25% 96%, rgba(95, 170, 80, 0.55), transparent 62%),
-    #b4d98f;
-  background-attachment: fixed;
-}
-h2, h3, .card h3 { color: var(--g-heading); }
-.muted, .profile-sub { color: var(--g-ink-soft); }
-.big { color: #2e8656; }
-::placeholder { color: #6f9280; }
-
-/* ----- 유리 칸 (카드) ----- */
-.card, .box {
-  background: var(--g-glass);
-  -webkit-backdrop-filter: var(--g-blur);
-  backdrop-filter: var(--g-blur);
-  border: 1px solid var(--g-rim);
-  border-radius: 22px;
-  box-shadow:
-    inset 0 1.5px 1px rgba(255, 255, 255, 0.9),
-    inset 0 -1px 1px rgba(255, 255, 255, 0.3),
-    var(--g-shadow);
-}
-.card:hover { box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.95), inset 0 -1px 1px rgba(255, 255, 255, 0.35), 0 14px 36px rgba(58, 110, 38, 0.20); }
-.card.soft {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.60), rgba(196, 232, 162, 0.34));
-  border-color: var(--g-rim);
-}
-
-/* ----- 상단바, 펼침 메뉴 ----- */
-.topbar, .navbar {
-  background: rgba(255, 255, 255, 0.38);
-  -webkit-backdrop-filter: var(--g-blur);
-  backdrop-filter: var(--g-blur);
-  border-bottom: 1px solid var(--g-rim);
-  box-shadow: 0 4px 20px rgba(58, 110, 38, 0.08);
-}
-.dropdown {
-  background: rgba(255, 255, 255, 0.55);
-  -webkit-backdrop-filter: var(--g-blur);
-  backdrop-filter: var(--g-blur);
-  border: 1px solid var(--g-rim);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), var(--g-shadow);
-}
-.dropdown a.active, .dropdown a:hover, .dropdown button:hover { background: rgba(255, 255, 255, 0.6); }
-.menu-button:hover { background: rgba(255, 255, 255, 0.5); }
-
-/* ----- 하단 이동바: 참고 이미지처럼 투명한 유리 알약 + 안쪽 유리 알약 ----- */
-.bottom-bar,
-nav#tabbar .inner {
-  background: rgba(255, 255, 255, 0.26);
-  -webkit-backdrop-filter: blur(26px) saturate(200%);
-  backdrop-filter: blur(26px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  box-shadow:
-    inset 0 1.5px 1px rgba(255, 255, 255, 0.95),
-    inset 0 -1px 1px rgba(255, 255, 255, 0.4),
-    0 12px 34px rgba(58, 110, 38, 0.22),
-    0 0 0 0.5px rgba(58, 130, 70, 0.18);
-}
-.bottom-bar a, nav#tabbar button, nav#tabbar a { color: #3d6a52; }
-.bottom-bar a.active, nav#tabbar button.active, nav#tabbar a.active {
-  background: rgba(255, 255, 255, 0.58);
-  color: #23744a;
-  box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 1), inset 0 -1px 2px rgba(120, 190, 120, 0.25), 0 3px 12px rgba(58, 110, 38, 0.16);
-}
-.bottom-bar a:hover:not(.active), nav#tabbar button:hover:not(.active), nav#tabbar a:hover:not(.active) { background: rgba(255, 255, 255, 0.34); }
-
-/* ----- 입력창 ----- */
-input, select, textarea {
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  color: var(--g-ink);
-  box-shadow: inset 0 1px 3px rgba(58, 110, 38, 0.10);
-}
-input:focus, select:focus, textarea:focus {
-  background: rgba(255, 255, 255, 0.78);
-  border-color: var(--p-green);
-  box-shadow: 0 0 0 4px rgba(76, 175, 125, 0.20);
-}
-
-/* ----- 버튼 ----- */
-.btn {
-  box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.55), 0 6px 16px rgba(58, 140, 80, 0.30);
-}
-.btn.ghost, .btn.outline {
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  color: #23744a;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9);
-}
-.btn.ghost:hover, .btn.outline:hover { background: rgba(255, 255, 255, 0.72); }
-.del:hover { background: rgba(255, 255, 255, 0.6); }
-
-/* ----- 진행 막대 ----- */
-.bar, .progress { background: rgba(255, 255, 255, 0.55); box-shadow: inset 0 1px 3px rgba(58, 110, 38, 0.14); }
-
-/* ----- 목록, 구분선, 작은 라벨 ----- */
-ul.list li, .member, .item, .item + .item, .row + .row { border-color: rgba(58, 110, 38, 0.14); }
-.member.me { background: rgba(255, 255, 255, 0.5); }
-.badge, .tag { background: rgba(255, 255, 255, 0.62); color: #23744a; }
-
-/* ----- 채팅 ----- */
-.msg.ai {
-  background: rgba(255, 255, 255, 0.55);
-  -webkit-backdrop-filter: var(--g-blur);
-  backdrop-filter: var(--g-blur);
-  border: 1px solid var(--g-rim);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), var(--p-shadow-sm);
-}
-.choices button { background: rgba(255, 255, 255, 0.55); border: 1px solid var(--g-rim); color: #23744a; }
-.choices button:hover { background: rgba(255, 255, 255, 0.8); }
-#chatform { background: transparent; }
-
-/* ----- 로그인 탭 ----- */
-.tabs { background: rgba(255, 255, 255, 0.4); border: 1px solid var(--g-rim); }
-.tabs button { color: var(--g-ink-soft); }
-.tabs button.active { background: rgba(255, 255, 255, 0.78); color: var(--g-heading); }
-
-/* ----- 마이 페이지 아바타 (사진이 없을 때 초록 동그라미) ----- */
-.avatar { box-shadow: inset 0 1.5px 1px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(58, 140, 80, 0.28); }
-
-/* ----- 로고: Montserrat 굵은 대문자, 넓은 글자 간격 ----- */
+/* ---------- 로고: Montserrat 굵은 대문자, 넓은 글자 간격 (팀원 디자인, 색만 무채색으로) ---------- */
 .logo, .box h1 {
   font-family: "Montserrat", "Pretendard", system-ui, sans-serif;
   font-weight: 800;
   letter-spacing: 0.22em;
-  color: #1f5c3d;
+  color: var(--ink);
   line-height: 1;
 }
 .logo { font-size: 20px; }
